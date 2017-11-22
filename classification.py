@@ -20,8 +20,8 @@ def load_pokemon_images():
         width, height = rgb_im.size
         for x in range(0, width):
             for y in range(0, height):
-                pixel = rgb_im.getpixel((x, y))  # this is a pixel
-                pixel_list.append(pixel)  # this has every pixel for every image
+                pixel = rgb_im.getpixel((x, y))  # this is a pixel. Each pixel is a tuple object containing the 3 different rgb values.
+                pixel_list.append(pixel)  # this has every pixel for every image. Each row in the pixel_list matrix containings a long x*y row vector.
                 
         # make a list for testing purposes
         image_list.append(rgb_im)
