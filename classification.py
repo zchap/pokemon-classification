@@ -19,6 +19,13 @@ def load_pokemon_images():
     return image_list
 
 
-print(load_pokemon_images())  # this prints every
+pk1 = load_pokemon_images()[0]
+pk2 = load_pokemon_images()[200]
+pk3 = load_pokemon_images()[300]
+pk1.show()
+pk2.show()
+pk3.show()
+
+print(load_pokemon_images())  # every image is in this list
 print("end")
 
