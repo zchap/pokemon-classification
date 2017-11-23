@@ -11,4 +11,5 @@ class TestClassification(unittest.TestCase):
         # expected size of list below should be 602 (as this is the # of rows in
         self.assertEqual(len(classification.load_pokemon_stats('PokemonData/TrainingMetadata.csv')), 602)
 
+
 unittest.main()
