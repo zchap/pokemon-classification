@@ -8,10 +8,10 @@ from PIL import Image
 import glob
 
 
-def load_pokemon_images(folder):
+def load_pokemon_images(folder_name):
     image_list = []
 
-    for filename in glob.glob('PokemonData/' + folder + '/*.png'):
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
         im = Image.open(filename)
         rgb_im = im.convert('RGB')  # convert each image to 'RGB' from default format (greyscale?)
         pixel_list = []
