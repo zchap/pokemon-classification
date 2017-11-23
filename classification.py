@@ -22,7 +22,7 @@ def load_pokemon_images(folder_name):
             for y in range(0, height):
                 pixel = rgb_im.getpixel((x, y))  # this is a pixel. Each pixel is a tuple object: (r, g, b)
                 pixel_list.append(pixel)  # this has every pixel for current image. Each row in the pixel_list matrix
-                # containing a long x*y row vector.
+                # contains a long x*y row vector.
 
         # now image_list contains every image object in the current folder in the form of lists of all pixels for that
         # image (i.e. [[(r1,g1,b1),(r2,g2,b2),...,(r(x*y),g(x*y),b(x*y)],
