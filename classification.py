@@ -21,6 +21,7 @@ def load_pokemon_images(folder_name):
         for x in range(0, width):
             for y in range(0, height):
                 pixel = rgb_im.getpixel((x, y))  # this is a pixel. Each pixel is a tuple object: (r, g, b)
+                pixel = list(pixel)  # converting pixel type to list so we can make X = [S I]
                 pixel_list.append(pixel)  # this has every pixel for current image. Each row in the pixel_list matrix
                 # contains a long x*y row vector.
 
@@ -34,7 +35,10 @@ def load_pokemon_images(folder_name):
 
 
 def load_pokemon_stats(csv_file_path):
-    # you can have both integers and strings in the same list
+    # Reads in a csv file of pokemon stats and returns a list of the stats for every pokemon included in the file
+    # List of stats starts with "type" because the first element has been removed. Each stat in the list is still a
+    # string, so we have to convert to float before performing operations such as gradient descent on them.
+
     # again, we have a list of lists where the size of the outer list is the number of pokemon we are looking at
     # (test = 200, training = 601)
     # the size of each inner list (list of pokemon stats) is the number of columns in Test & Training Metadata
@@ -44,8 +48,12 @@ def load_pokemon_stats(csv_file_path):
         read_input = csv.reader(f)
         stats_list = list(read_input)
 
-    print(stats_list)
-    return stats_list
+    # we can ignore the first element in stats_list
+    truncated_stats_list = stats_list[1:]
+
+    for i in range(0, len(truncated_stats_list)):
+        truncated_stats_list[i] = (truncated_stats_list[i])[1:]  # this takes the first 'stat' out from every inner list
+
+    return truncated_stats_list
 
 
-load_pokemon_stats('PokemonData/TrainingMetadata.csv')
