@@ -30,4 +30,22 @@ def load_pokemon_images(folder_name):
         # the size of the list above is the number of images (test: 200, training: 601)
         image_list.append(pixel_list)
 
-    return image_list  
+    return image_list
+
+
+def load_pokemon_stats(csv_file_path):
+    # you can have both integers and strings in the same list
+    # again, we have a list of lists where the size of the outer list is the number of pokemon we are looking at
+    # (test = 200, training = 601)
+    # the size of each inner list (list of pokemon stats) is the number of columns in Test & Training Metadata
+    # (number of stats representing a pokemon, 17 including pokemon number)
+    # the first column can be ignored because it is just the number
+    with open(csv_file_path, 'r') as f:
+        read_input = csv.reader(f)
+        stats_list = list(read_input)
+
+    print(stats_list)
+    return stats_list
+
+
+load_pokemon_stats('PokemonData/TrainingMetadata.csv')
