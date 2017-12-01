@@ -1,19 +1,21 @@
+import numpy
+from sklearn.decomposition import PCA
 from sklearn.neural_network import MLPClassifier
-
 import classification
 import test_classification
 from sklearn.neighbors import KNeighborsClassifier #K-NN
 from sklearn.neural_network import MLPClassifier
-
 from sklearn.svm import LinearSVC #linear-SVM
 from sklearn.svm import SVC
 from sklearn import svm, tree
 from sklearn.model_selection import cross_validate
 
-vector_i = classification.load_pokemon_images('TrainingImages')
+vector_i = numpy.array(classification.load_pokemon_images('TrainingImages'))
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
 y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
 
+pixels = vector_i.flatten().reshape(601, 27648)
+print(pixels.shape)
 test_data = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
 # converting vector_s from string to float
 for p in range(0, len(vector_s)):  # indexing each pokemon
