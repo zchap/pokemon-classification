@@ -4,6 +4,7 @@ from sklearn.neighbors import KNeighborsClassifier #K-NN
 from sklearn.svm import LinearSVC #linear-SVM
 from sklearn.svm import SVC
 from sklearn import svm
+from sklearn import cross_validation
 
 vector_i = classification.load_pokemon_images('TrainingImages')
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
@@ -45,7 +46,6 @@ def linear_svm_stats():
     classifier.fit(vector_s, y)
     print(classifier.predict(test_data))
 
-
 def linear_kernel_svm_stats():
     linear_svm = svm.SVC(kernel='linear')
     linear_svm.fit(vector_s, y)
@@ -62,7 +62,7 @@ def poly_kernel_svm_stats():
     print(poly_svm.predict(test_data))
 
 #k_nn_stats()
-linear_svm_stats()
+#linear_svm_stats() #gives an error for SVM
 #linear_kernel_svm_stats()
 #rbf_kernel_svm_stats()
 #poly_kernel_svm_stats()
