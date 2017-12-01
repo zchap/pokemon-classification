@@ -34,7 +34,7 @@ def load_pokemon_images(folder_name):
     return image_list
 
 
-def load_pokemon_stats(csv_file_path):
+def load_test_stats(csv_file_path):
     # Reads in a csv file of pokemon stats and returns a list of the stats for every pokemon included in the file
     # List of stats starts with "type" because the first element has been removed. Each stat in the list is still a
     # string, so we have to convert to float before performing operations such as gradient descent on them.
@@ -56,4 +56,31 @@ def load_pokemon_stats(csv_file_path):
 
     return truncated_stats_list
 
+
+def load_training_stats(csv_file_path):
+    with open(csv_file_path, 'r') as f:
+        read_input = csv.reader(f)
+        stats_list = list(read_input)
+
+    # we can ignore the first element in stats_list (as it is just the header labels)
+    truncated_stats_list = stats_list[1:]
+
+    for i in range(0, len(truncated_stats_list)):
+        truncated_stats_list[i] = (truncated_stats_list[i])[2:]  # this takes the first two 'stats' out from every inner list'
+
+    return truncated_stats_list
+
+
+def load_training_labels(csv_file_path):
+    with open(csv_file_path, 'r') as f:
+        read_input = csv.reader(f)
+        stats_list = list(read_input)
+
+    # we can ignore the first element in stats_list (as it is just the header labels)
+    training_labels = stats_list[1:]
+
+    for i in range(0, len(training_labels)):
+        training_labels[i] = (training_labels[i])[1]  # this takes the label out from every inner list
+
+    return training_labels
 

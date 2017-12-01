@@ -3,7 +3,7 @@ import unittest
 
 # global variables for testing
 images_list = classification.load_pokemon_images('TestImages')[0]
-stats_list = classification.load_pokemon_stats('PokemonData/UnlabeledTestMetadata.csv')
+stats_list = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
 
 
 # Print tests that should pass by basic observation
