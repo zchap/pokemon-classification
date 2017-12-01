@@ -56,7 +56,6 @@ def load_test_stats(csv_file_path):
 
     return truncated_stats_list
 
-
 def load_training_stats(csv_file_path):
     with open(csv_file_path, 'r') as f:
         read_input = csv.reader(f)

@@ -13,9 +13,16 @@ from sklearn.model_selection import cross_validate
 vector_i = numpy.array(classification.load_pokemon_images('TrainingImages'))
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
 y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
+pixels = list(vector_i.flatten().reshape(601, 27648))
+num_pokemon = len(vector_i)
 
-pixels = vector_i.flatten().reshape(601, 27648)
-print(pixels.shape)
+vector_x = []
+for n in range(0, num_pokemon):
+    print(n)
+    vector_x.append(vector_s[n] + list(pixels[n]))
+
+print(vector_x[0])
+
 test_data = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
 # converting vector_s from string to float
 for p in range(0, len(vector_s)):  # indexing each pokemon
@@ -25,6 +32,7 @@ for p in range(0, len(vector_s)):  # indexing each pokemon
 # converting y from string to float
 for index in range(0, len(y)):
     y[index] = float(y[index])
+
 
 def k_nn_stats():
     # This function runs our classification algorithm using the methods in 'classification'
@@ -122,4 +130,4 @@ def cross_validation(classifier):
 #  0.0862069   0.10526316  0.10714286  0.09259259]
 # Average is 12.518%
 
-cross_validation(decision_tree())
+#cross_validation(decision_tree())
