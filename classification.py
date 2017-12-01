@@ -1,4 +1,5 @@
 import numpy as np
+import numpy.linalg as npl
 import scipy
 import csv  # used to read/write/investigate csv files
 import os
@@ -69,6 +70,19 @@ def load_training_stats(csv_file_path):
 
     return truncated_stats_list
 
+
+def load_pokemon_numbers(csv_file_path):
+    with open(csv_file_path, 'r') as f:
+        read_input = csv.reader(f)
+        stats_list = list(read_input)
+
+    # we can ignore the first element in stats_list (as it is just the header labels)
+    truncated_stats_list = stats_list[1:]
+
+    for i in range(0, len(truncated_stats_list)):
+        truncated_stats_list[i] = (truncated_stats_list[i])[0]  # this takes the label out from every inner list
+
+    return truncated_stats_list
 
 def load_training_labels(csv_file_path):
     with open(csv_file_path, 'r') as f:

@@ -7,12 +7,16 @@ Team Members:
 Classification of Pokémon based on training data in the form of their images and statistics (16 stats ranging from ATTACK to HEIGHT).
 
 
-   # k_nn_stats()
+    # k_nn_stats()
     # linear_svm_stats() #gives an error for SVM
     # linear_kernel_svm_stats()
     # rbf_kernel_svm_stats()
     # poly_kernel_svm_stats()
     # expected: 201 vectors of floats, given 201 vectors of floats
+
+    # K-NN with K = 9
+    [ 0.26470588  0.15384615  0.171875    0.11666667  0.21666667  0.22033898
+      0.17241379  0.14035088  0.19642857  0.11111111] Avg: 17.65%
 
     # Question 2 part E:
     # Result of cross validation: [ 0.22058824  0.13846154  0.125       0.15        0.21666667  0.20338983
