@@ -34,9 +34,8 @@ def k_nn_stats():
 
     # doing k-nn on just the stats (with k = 3)
     n_neighbors = 3
-    neigh = KNeighborsClassifier(n_neighbors)
-    neigh.fit(vector_s, y)
-    print(neigh.predict(test_data))
+    classifier = KNeighborsClassifier(n_neighbors)
+    return classifier
 
     # for i in range(0, num_pokemon):
     #     combined_vec = vector_s[i] + vector_i[i]
@@ -47,29 +46,27 @@ def k_nn_stats():
 
 def linear_svm_stats():
     classifier = LinearSVC()
-    classifier.fit(vector_s, y)
-    print(classifier.predict(test_data))
+    return classifier
 
 
 def linear_kernel_svm_stats():
-    linear_svm = svm.SVC(kernel='linear')
-    linear_svm.fit(vector_s, y)
-    print(linear_svm.predict(test_data))
+    classifier = svm.SVC(kernel='linear')
+    return classifier
 
 
 def rbf_kernel_svm_stats():
-    rbf_svm = svm.SVC(kernel='rbf')
-    rbf_svm.fit(vector_s, y)
-    print(rbf_svm.predict(test_data))
-
+    classifier = svm.SVC(kernel='rbf')
+    return classifier
 
 def poly_kernel_svm_stats():
-    poly_svm = svm.SVC(kernel='poly', degree=3)
-    poly_svm.fit(vector_s, y)
-    print(poly_svm.predict(test_data))
+    classifier = svm.SVC(kernel='poly', degree=3)
+    return classifier
 
 def neural_net_classifier():
-    classifier = MLPClassifier(solver='sgd')
+    classifer = MLPClassifier(solver='sgd')
+    return classifer
+
+def cross_validation(classifier):
     cv_results = cross_validate(classifier, vector_s, y, cv=10, return_train_score=False)
     sorted(cv_results.keys())
     print(cv_results['test_score'])
