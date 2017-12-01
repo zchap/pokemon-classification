@@ -29,7 +29,7 @@ class TestClassification(unittest.TestCase):
         self.assertEqual(len(stats_list[0]), 15)
 
 
-print_stats_list()
+#print_stats_list()
 if __name__ == '__main__':
     unittest.main()
 

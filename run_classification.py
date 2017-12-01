@@ -15,15 +15,8 @@ vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv'
 y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
 pixels = list(vector_i.flatten().reshape(601, 27648))
 num_pokemon = len(vector_i)
-
-vector_x = []
-for n in range(0, num_pokemon):
-    print(n)
-    vector_x.append(vector_s[n] + list(pixels[n]))
-
-print(vector_x[0])
-
 test_data = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
+
 # converting vector_s from string to float
 for p in range(0, len(vector_s)):  # indexing each pokemon
     for s in range(0, len(vector_s[p])):  # indexing each stat for each pokemon
@@ -33,6 +26,11 @@ for p in range(0, len(vector_s)):  # indexing each pokemon
 for index in range(0, len(y)):
     y[index] = float(y[index])
 
+# concatenate s with i, create numpy array of numpy arrays
+vector_x = []
+for n in range(0, num_pokemon):
+    vector_x.append(numpy.array(vector_s[n] + list(pixels[n])))
+vector_x = numpy.array(vector_x)
 
 def k_nn_stats():
     # This function runs our classification algorithm using the methods in 'classification'
