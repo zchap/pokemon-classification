@@ -3,10 +3,12 @@ from sklearn.neural_network import MLPClassifier
 import classification
 import test_classification
 from sklearn.neighbors import KNeighborsClassifier #K-NN
+from sklearn.neural_network import MLPClassifier
+
 from sklearn.svm import LinearSVC #linear-SVM
 from sklearn.svm import SVC
 from sklearn import svm
-from sklearn import cross_validation
+from sklearn.model_selection import cross_validate
 
 vector_i = classification.load_pokemon_images('TrainingImages')
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
@@ -48,31 +50,40 @@ def linear_svm_stats():
     classifier.fit(vector_s, y)
     print(classifier.predict(test_data))
 
+
 def linear_kernel_svm_stats():
     linear_svm = svm.SVC(kernel='linear')
     linear_svm.fit(vector_s, y)
     print(linear_svm.predict(test_data))
+
 
 def rbf_kernel_svm_stats():
     rbf_svm = svm.SVC(kernel='rbf')
     rbf_svm.fit(vector_s, y)
     print(rbf_svm.predict(test_data))
 
+
 def poly_kernel_svm_stats():
     poly_svm = svm.SVC(kernel='poly', degree=3)
     poly_svm.fit(vector_s, y)
     print(poly_svm.predict(test_data))
+
+def neural_net_classifier():
+    classifier = MLPClassifier(solver='sgd')
+    cv_results = cross_validate(classifier, vector_s, y, cv=10, return_train_score=False)
+    sorted(cv_results.keys())
+    print(cv_results['test_score'])
+
 
 #k_nn_stats()
 #linear_svm_stats() #gives an error for SVM
 #linear_kernel_svm_stats()
 #rbf_kernel_svm_stats()
 #poly_kernel_svm_stats()
+neural_net_classifier()
 # expected: 201 vectors of floats, given 201 vectors of floats
 
-from sklearn.model_selection import cross_validate
 
-n_neighbors = 18
 
 # Question 2 part E:
 # Result of cross validation: [ 0.22058824  0.13846154  0.125       0.15        0.21666667  0.20338983
@@ -97,9 +108,3 @@ n_neighbors = 18
 #  0.13793103  0.12280702  0.125       0.14814815]
 # Average is 13.642%
 #classifier = svm.SVC(kernel='rbf')
-
-classifier = MLPClassifier(solver='sgd')
-print('stepa')
-cv_results = cross_validate(classifier, vector_s, y, cv=10, return_train_score=False)
-sorted(cv_results.keys())
-print(cv_results['test_score'])
