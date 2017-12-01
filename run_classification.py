@@ -8,11 +8,16 @@ from sklearn import svm
 vector_i = classification.load_pokemon_images('TrainingImages')
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
 y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
+
 test_data = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
 # converting vector_s from string to float
 for p in range(0, len(vector_s)):  # indexing each pokemon
     for s in range(0, len(vector_s[p])):  # indexing each stat for each pokemon
         vector_s[p][s] = float(vector_s[p][s])
+
+# converting y from string to float
+for index in range(0, len(y)):
+    y[index] = float(y[index])
 
 def k_nn_stats():
     # This function runs our classification algorithm using the methods in 'classification'
@@ -38,19 +43,28 @@ def k_nn_stats():
 def linear_svm_stats():
     classifier = LinearSVC()
     classifier.fit(vector_s, y)
-    #print(classifier.predict(test_data))
+    print(classifier.predict(test_data))
 
 
 def linear_kernel_svm_stats():
-    linear_svm = svm.SVC("linear")
+    linear_svm = svm.SVC(kernel='linear')
+    linear_svm.fit(vector_s, y)
+    print(linear_svm.predict(test_data))
 
 def rbf_kernel_svm_stats():
-    rbf_svm = svm.SVC("rbf")
+    rbf_svm = svm.SVC(kernel='rbf')
+    rbf_svm.fit(vector_s, y)
+    print(rbf_svm.predict(test_data))
 
 def poly_kernel_svm_stats():
-    poly_svm = svm.SVC("poly")
+    poly_svm = svm.SVC(kernel='poly', degree=3)
+    poly_svm.fit(vector_s, y)
+    print(poly_svm.predict(test_data))
 
 #k_nn_stats()
 linear_svm_stats()
+#linear_kernel_svm_stats()
+#rbf_kernel_svm_stats()
+#poly_kernel_svm_stats()
 # expected: 201 vectors of floats, given 201 vectors of floats
 
