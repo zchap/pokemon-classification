@@ -33,7 +33,7 @@ for n in range(0, num_pokemon):
 vector_x = numpy.array(vector_x)
 
 
-def k_nn_stats():
+def k_nn(k):
     # This function runs our classification algorithm using the methods in 'classification'
 
     # Note: each inner vector of vector_s only contains 15 elements, since the type of the pokemon has not been
@@ -42,8 +42,8 @@ def k_nn_stats():
     # vector_x = vector_i + vector_s
 
     # doing k-nn on just the stats (with k = 3)
-    n_neighbors = 3
-    classifier = KNeighborsClassifier(n_neighbors)
+    n_neighbors = k
+    classifier = KNeighborsClassifier(n_neighbors, weights='distance')
     return classifier
 
     # for i in range(0, num_pokemon):
@@ -53,9 +53,9 @@ def k_nn_stats():
     # return vector_x
 
 
-def linear_svm_stats():
-    classifier = LinearSVC()
-    return classifier
+# def linear_svm_stats():
+#     classifier = LinearSVC()
+#     return classifier
 
 
 def linear_kernel_svm_stats():
@@ -84,7 +84,7 @@ def decision_tree():
 
 
 def cross_validation(classifier, vec_x, vec_y):
-    cv_results = cross_validate(classifier, vec_x, y, cv=10, return_train_score=False)
+    cv_results = cross_validate(classifier, vec_x, vec_y, cv=10, return_train_score=False)
     sorted(cv_results.keys())
     print(cv_results['test_score'])
 
@@ -95,8 +95,6 @@ def cross_validation(classifier, vec_x, vec_y):
     # rbf_kernel_svm_stats()
     # poly_kernel_svm_stats()
     # expected: 201 vectors of floats, given 201 vectors of floats
-
-
 
     # Question 2 part E:
     # Result of cross validation: [ 0.22058824  0.13846154  0.125       0.15        0.21666667  0.20338983
@@ -133,4 +131,14 @@ def cross_validation(classifier, vec_x, vec_y):
     #  0.0862069   0.10526316  0.10714286  0.09259259]
     # Average is 12.518%
 
-    # cross_validation(decision_tree())
+    # Cross Validation Results for big X (X = [S I]):
+    # K-NN with K = 3
+    # [0.10294118  0.10769231  0.15625     0.13333333  0.13333333  0.01694915
+    #  0.0862069   0.10526316  0.08928571  0.09259259]
+    # Average is 10.23%
+
+    # Cross Validation Results for big X:
+    #
+
+
+cross_validation(k_nn(3), vector_s, y)
