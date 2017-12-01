@@ -7,7 +7,7 @@ from sklearn.neural_network import MLPClassifier
 
 from sklearn.svm import LinearSVC #linear-SVM
 from sklearn.svm import SVC
-from sklearn import svm
+from sklearn import svm, tree
 from sklearn.model_selection import cross_validate
 
 vector_i = classification.load_pokemon_images('TrainingImages')
@@ -63,8 +63,12 @@ def poly_kernel_svm_stats():
     return classifier
 
 def neural_net_classifier():
-    classifer = MLPClassifier(solver='sgd')
+    classifer = MLPClassifier(solver='sgd', max_iter = 1500, tol = 1e-6)
     return classifer
+
+def decision_tree():
+    classifier = tree.DecisionTreeClassifier()
+    return classifier
 
 def cross_validation(classifier):
     cv_results = cross_validate(classifier, vector_s, y, cv=10, return_train_score=False)
@@ -77,7 +81,6 @@ def cross_validation(classifier):
 #linear_kernel_svm_stats()
 #rbf_kernel_svm_stats()
 #poly_kernel_svm_stats()
-neural_net_classifier()
 # expected: 201 vectors of floats, given 201 vectors of floats
 
 
@@ -105,3 +108,16 @@ neural_net_classifier()
 #  0.13793103  0.12280702  0.125       0.14814815]
 # Average is 13.642%
 #classifier = svm.SVC(kernel='rbf')
+
+# Question 2 part I:
+# Neural Net:
+# Result of cross validation: [ 0.13235294  0.15384615  0.125       0.13333333  0.08333333  0.11864407
+#  0.10344828  0.14035088  0.125       0.11111111]
+# Average is 12.264%
+
+# Decision Tree:
+# Result of cross validation: [ 0.17647059  0.09230769  0.15625     0.1         0.2         0.13559322
+#  0.0862069   0.10526316  0.10714286  0.09259259]
+# Average is 12.518%
+
+cross_validation(decision_tree())
