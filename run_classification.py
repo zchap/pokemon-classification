@@ -1,12 +1,11 @@
+from sklearn.model_selection import cross_validate
 from sklearn.neural_network import MLPClassifier
-
 import classification
 import test_classification
 from sklearn.neighbors import KNeighborsClassifier #K-NN
 from sklearn.svm import LinearSVC #linear-SVM
 from sklearn.svm import SVC
 from sklearn import svm
-from sklearn import cross_validation
 
 vector_i = classification.load_pokemon_images('TrainingImages')
 vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
@@ -70,7 +69,6 @@ def poly_kernel_svm_stats():
 #poly_kernel_svm_stats()
 # expected: 201 vectors of floats, given 201 vectors of floats
 
-from sklearn.model_selection import cross_validate
 
 n_neighbors = 18
 
