@@ -110,6 +110,8 @@ def cross_validation(classifier, vec_x, vec_y):
     print(cv_results['test_score'])  # scores our classifier's accuracy
 
 
+
+
 # Using only S to predict y:
     # Question 2 part E: K-NN Classifier with K = 9
     # Result of cross validation:
