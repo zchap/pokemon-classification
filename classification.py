@@ -52,7 +52,8 @@ def load_test_stats(csv_file_path):
     # we can ignore the first element in stats_list
     truncated_stats_list = stats_list[1:]
     for i in range(0, len(truncated_stats_list)):
-        truncated_stats_list[i] = (truncated_stats_list[i])[1:]  # this takes the first 'stat' out from every inner list
+        truncated_stats_list[i] = (truncated_stats_list[i])  # this includes the pokemon number
+        #truncated_stats_list[i] = (truncated_stats_list[i])[1:]  # this removes the pokemon number
 
     return truncated_stats_list
 
@@ -88,7 +89,10 @@ def load_training_stats(csv_file_path):
     truncated_stats_list = stats_list[1:]
 
     for i in range(0, len(truncated_stats_list)):
-        truncated_stats_list[i] = (truncated_stats_list[i])[2:]  # this takes the first two 'stats' out from every inner list'
+        temp_list = truncated_stats_list[i]
+        temp_list.pop(1)
+        truncated_stats_list[i] = (temp_list)  # this removes type from every inner list
+        #truncated_stats_list[i] = (truncated_stats_list[i])[2:]  # this removes number and type from every inner list
 
     return truncated_stats_list
 

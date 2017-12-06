@@ -8,35 +8,46 @@ import test_classification
 from sklearn.neighbors import KNeighborsClassifier  # K-NN
 from sklearn.neural_network import MLPClassifier
 from sklearn.svm import LinearSVC  # linear-SVM
+from sklearn.calibration import CalibratedClassifierCV
+from sklearn.metrics import accuracy_score
 from sklearn.svm import SVC
 from sklearn import svm, tree
-from sklearn.model_selection import cross_validate
+from sklearn.model_selection import cross_validate, train_test_split
 
 # Loading image vector, stats vector, and labels.
-vector_i = numpy.array(classification.load_pokemon_images('TrainingImages'))
-vector_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
-y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
-pixels = list(vector_i.flatten().reshape(601, 27648))
-num_pokemon = len(vector_i)
-test_data = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
+train_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
+train_i = numpy.array(classification.load_pokemon_images('TrainingImages'))
+train_y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
+train_pixels = list(train_i.flatten().reshape(601, 27648))
+
+test_s = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
+test_i = numpy.array(classification.load_pokemon_images('TestImages'))
+test_pixels = list(test_i.flatten().reshape(201, 27648))
 
 # Converting stats matrix to float from string, so that classifiers can be used on them.
-for p in range(0, len(vector_s)):  # indexing each pokemon
-    for s in range(0, len(vector_s[p])):  # indexing each stat for each pokemon
-        vector_s[p][s] = float(vector_s[p][s])
+for p in range(0, len(train_s)):  # indexing each pokemon
+    for s in range(0, len(train_s[p])):  # indexing each stat for each pokemon
+        train_s[p][s] = float(train_s[p][s])
+for p in range(0, len(test_s)):  # indexing each pokemon
+    for s in range(0, len(test_s[p])):  # indexing each stat for each pokemon
+        test_s[p][s] = float(test_s[p][s])
 
 # Converting labels vector to float from string, so that classifiers can be used on them.
-for index in range(0, len(y)):
-    y[index] = float(y[index])
+for index in range(0, len(train_y)):
+    train_y[index] = float(train_y[index])
 
 # Horizontal concatenation of S and I to form X = [S I]. Had to be done using a loop instead of with .concatenate
 # because of type differences in the loaded image data and the loaded statistics data stemming from the fact that
 # I is represented by (r, g, b) tuples.
-vector_x = []
-for n in range(0, num_pokemon):
-    vector_x.append(numpy.array(vector_s[n] + list(pixels[n])))
-vector_x = numpy.array(vector_x)
+train_x = []
+for n in range(0, len(train_i)):
+    train_x.append(numpy.array(train_s[n] + list(train_pixels[n])))
+train_x = numpy.array(train_x)
 
+test_x = []
+for n in range(0, len(test_i)):
+    test_x.append(numpy.array(test_s[n] + list(test_pixels[n])))
+test_x = numpy.array(test_x)
 
 def k_nn(k):
     """
@@ -110,6 +121,101 @@ def cross_validation(classifier, vec_x, vec_y):
     print(cv_results['test_score'])  # scores our classifier's accuracy
 
 
+def prediction_probs(classifier, x_train, y_train, x_test, log_prob=False):
+    """
+    Get probability for each classification to easily combine later
+    Note: Will only work for classifiers with built-in 'predict_proba' and 'predict_log_proba' methods.
+    Input: classifier - Classifier created by pre-existing sklearn method
+           log_prob - Boolean True if want the log probability, False if not (default)
+    Output: probs - List? of probabilities for each prediction
+    """
+    # First fit the classifier to the training data
+    model = classifier.fit(x_train,y_train)
+    # Then use the fitted classifier to make a prediction on the test data and print the probabilities
+    if log_prob:
+        y_probs = model.predict_log_proba(x_test)
+    else:
+        y_probs = model.predict_proba(x_test)
+
+    return y_probs
+
+def combine_probs(a_probs, b_probs):
+    """
+    Input: a_probs, b_probs - Numpy arrays of the form output by prediction_probs. They contain the
+           prediction probabilities made by the classifier for each class.
+    Output: prediction - List containing prediction for each Pokemon
+
+    Helper function to combine the predictions made by the two classifiers
+    """
+    prediction = []
+    for i in range(len(a_probs)):
+        # avg will contain the average probability for each class
+        avg = (a_probs[i] + b_probs[i]) / 2
+        # add class with highest probability to prediction
+        prediction.append(numpy.argmax(avg))
+    return prediction
+
+def matt_cross_validate(x, y, cv=3, log_prob=False):
+    """
+    Input: x - Training data x values
+           y - Training data y values
+           cv - Number of subsets to use for cross-validation
+           log_prob - Boolean True if want the log probability, False if not (default)
+    Output: scores - List of percentages indicating how accurate the classifiers
+                     were (one percentage for each subset in the cross-validation)
+    """
+
+    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
+    linear_svc = LinearSVC()
+    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
+    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
+    i_classifier = neural_net()
+
+    scores = []
+    # Note: this isn't a true cross-validation. there's nothing to prevent it from double counting/having overlapping subsets.
+    for count in range(cv):
+        print('Starting CV ' + str(count))
+        # Note: train_test_split step is instantaneous
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=(1/cv))
+
+        # Note: This step takes a long time
+        # Note: Dimensions of s_probs are 601 x 18 on full data
+        s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
+        i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
+
+        # Note: combine_probs step is pretty fast
+        prediction = combine_probs(s_probs,i_probs)
+
+        # check accuracy
+        accuracy = accuracy_score(y_test,prediction)
+        scores.append(accuracy)
+
+    return scores
+
+
+def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
+    """
+    This is for getting a prediction from two classifiers
+    """
+
+    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
+    linear_svc = linear_svm()
+    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
+    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
+    i_classifier = neural_net()
+
+    # Note: This step takes a long time
+    # Note: Dimensions of s_probs are 601 x 18 on full data
+    s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
+    i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
+
+    # Note: combine_probs step is pretty fast
+    prediction = combine_probs(s_probs,i_probs)
+
+    # check accuracy
+    accuracy = accuracy_score(y_test,prediction)
+
+    return accuracy, prediction
 
 
 # Using only S to predict y:
@@ -226,11 +332,11 @@ def cross_validation(classifier, vec_x, vec_y):
 # into classification algorithms and the sklearn package.
 
 
-# cross_validation(k_nn(9), vector_x, y)
-# cross_validation(linear_svm(), vector_x, y)
-# cross_validation(linear_kernel_svm(), vector_x, y)
-# cross_validation(poly_kernel_svm(), vector_x, y)
-# cross_validation(rbf_kernel_svm(), vector_x, y)
-# cross_validation(neural_net(), vector_x, y)
-# cross_validation(decision_tree(), vector_x, y)
+# cross_validation(k_nn(9), train_x, y)
+# cross_validation(linear_svm(), train_x, y)
+# cross_validation(linear_kernel_svm(), train_x, y)
+# cross_validation(poly_kernel_svm(), train_x, y)
+# cross_validation(rbf_kernel_svm(), train_x, y)
+# cross_validation(neural_net(), train_x, y)
+# cross_validation(decision_tree(), train_x, y)
 
