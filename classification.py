@@ -4,10 +4,28 @@ import scipy
 import csv  # used to read/write/investigate csv files
 import os
 import matplotlib.pyplot as plt
+import matplotlib.colors as colors
 
-from PIL import Image
+from PIL import Image, ImageOps
 import glob
 
+def load_poke_images(folder_name):
+    image_list = []
+
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
+        im = plt.imread(filename)[:,:,:3]
+        image_list.append(im)
+    return image_list
+
+def load_poke_images2(folder_name):
+    image_list = []
+
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
+        im = Image.open(filename).convert('RGB')
+        #print("imsize"+str(im.size))
+        ima = np.asarray(im.getdata(),dtype=np.float64)#.reshape((im.size[1],im.size[0]))
+        image_list.append(ima)
+    return image_list
 
 def load_pokemon_images(folder_name):
     image_list = []
@@ -96,4 +114,3 @@ def load_training_labels(csv_file_path):
         training_labels[i] = (training_labels[i])[1]  # this takes the label out from every inner list
 
     return training_labels
-
