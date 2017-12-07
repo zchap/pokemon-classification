@@ -1,5 +1,6 @@
 import numpy
 import numpy.linalg as npl
+import keras.utils
 from sklearn.calibration import CalibratedClassifierCV
 from sklearn.cross_validation import train_test_split
 from sklearn.decomposition import PCA
@@ -21,11 +22,12 @@ import pandas as pd
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
+import neural_net_classification as nn
 
 # Loading image vector, stats vector, and labels.
 train_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
 train_i = numpy.array(classification.load_poke_images('TrainingImages'))
-train_y = classification.load_training_labels('PokemonData/TrainingMetadata.csv')
+train_y = numpy.array(list(map(int, classification.load_training_labels('PokemonData/TrainingMetadata.csv'))))
 train_pixels = list(train_i.flatten().reshape(601, 27648))
 
 test_s = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
@@ -41,8 +43,6 @@ for p in range(0, len(test_s)):  # indexing each pokemon
         test_s[p][s] = float(test_s[p][s])
 
 # Converting labels vector to float from string, so that classifiers can be used on them.
-for index in range(0, len(train_y)):
-    train_y[index] = float(train_y[index])
 
 # Horizontal concatenation of S and I to form X = [S I]. Had to be done using a loop instead of with .concatenate
 # because of type differences in the loaded image data and the loaded statistics data stemming from the fact that
@@ -182,11 +182,13 @@ def keras_nn_classifier():
     y_new = numpy.array(train_y).reshape((-1, 1))
     model.fit(train_i, y_new, epochs=27)
     y_pred = model.predict(test_i)
-    print("These are predicted labels")
-    print(y_pred)
+    return y_pred
 
 
-print(numpy.array(train_y).reshape((-1,1)))
+labels = nn.labels_from_sparse_matrix(keras_nn_classifier())
+for label in labels:
+    print(label)
+
 #keras_nn_classifier()
 
 
