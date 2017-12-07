@@ -17,16 +17,6 @@ def load_poke_images(folder_name):
         image_list.append(im)
     return image_list
 
-def load_poke_images2(folder_name):
-    image_list = []
-
-    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
-        im = Image.open(filename).convert('RGB')
-        #print("imsize"+str(im.size))
-        ima = np.asarray(im.getdata(),dtype=np.float64)#.reshape((im.size[1],im.size[0]))
-        image_list.append(ima)
-    return image_list
-
 def load_pokemon_images(folder_name):
     image_list = []
 
@@ -75,6 +65,7 @@ def load_test_stats(csv_file_path):
 
     return truncated_stats_list
 
+
 def load_test_num(csv_file_path):
     # Reads in a csv file of pokemon stats and returns a list of the stats for every pokemon included in the file
     # List of stats starts with "type" because the first element has been removed. Each stat in the list is still a
@@ -93,9 +84,8 @@ def load_test_num(csv_file_path):
     truncated_stats_list = stats_list[1:]
     test_num = []
     for i in range(0, len(truncated_stats_list)):
-        test_num[i] =(truncated_stats_list[i])[1]
+        test_num[i] = (truncated_stats_list[i])[1]
     return test_num
-
 
 
 def load_training_stats(csv_file_path):
@@ -127,6 +117,7 @@ def load_pokemon_numbers(csv_file_path):
         truncated_stats_list[i] = (truncated_stats_list[i])[0]  # this takes the label out from every inner list
 
     return truncated_stats_list
+
 
 def load_training_labels(csv_file_path):
     with open(csv_file_path, 'r') as f:
