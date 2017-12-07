@@ -13,9 +13,10 @@ def load_poke_images(folder_name):
     image_list = []
 
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
-        im = plt.imread(filename)[:,:,:3]
+        im = plt.imread(filename)[:, :, :3]
         image_list.append(im)
     return image_list
+
 
 def load_pokemon_images(folder_name):
     image_list = []

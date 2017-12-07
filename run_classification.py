@@ -186,6 +186,7 @@ def keras_nn_classifier():
     print(y_pred)
 
 
+print(numpy.array(train_y).reshape((-1,1)))
 #keras_nn_classifier()
 
 
