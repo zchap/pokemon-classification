@@ -1,4 +1,5 @@
 import numpy
+import tensorflow as tf
 import numpy.linalg as npl
 import keras.utils
 from sklearn.calibration import CalibratedClassifierCV
