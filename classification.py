@@ -3,21 +3,75 @@ import numpy.linalg as npl
 import scipy
 import csv  # used to read/write/investigate csv files
 import os
-import matplotlib.pyplot as plt
+import io
+import matplotlib.image as mpimage
 import matplotlib.colors as colors
+from scipy.misc import imread
+from sklearn.decomposition import PCA
+
+
 
 from PIL import Image, ImageOps
 import glob
+
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
+
+def pca(X,comp):
+    mean_X = X.mean(axis=0)
+    X = X - mean_X
+    M = np.dot(X, X.T) # covariance matrix
+    e,EV = npl.linalg.eigh(M) # eigenvalues and eigenvectors
+    tmp = np.dot(X.T, EV).T # this is the compact trick
+    V = tmp[::-1] # reverse since last eigenvectors are the ones we want
+    S = np.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order
+    for i in range(V.shape[1]):
+        V[:,i] /= S
+    V = V[:comp]
+    reshapeim = V.reshape(96,96)
+    return reshapeim
+
+def pca_load_images(folder_name, comp)
+    image_list = []
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
+        im = imread(filename)[:, :, :3]
+        red = im[:,:,1]
+        green = im[:,:2]
+        blue = im[:,:,3]
+        pca_red = pca(red, comp)
+        pca_blue = pca(blue, comp)
+        pca_green = pca(green, comp)
+        im[:,:,1] = pca_red
+        im[:,:,2] = pca_blue
+        im[:,:,3] = pca_red
+        image_list.append(im)
+    return image_list
 
 def load_poke_images(folder_name):
     image_list = []
 
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
-        im = plt.imread(filename)[:, :, :3]
+        im = imread(filename)[:, :, :3]
         image_list.append(im)
     return image_list
 
 
+
+
+
+def load_poke_images_grayscale(folder_name):
+    image_list = []
+
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
+        im = imread(filename)[:, :, :3]
+        gray = rgb2gray(im)
+        gray = gray.flatten()
+        image_list.append(gray)
+    return image_list
+
+
+
+    return
 def load_pokemon_images(folder_name):
     image_list = []
 
