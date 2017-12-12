@@ -429,6 +429,7 @@ def array_to_text(train, test):
     b = numpy.array(test)
     return a.tofile('train.txt', sep=" ", format = "%s"), b.tofile('test.txt', sep=" ", format = "%s")
 
+
 # k = neural_net()
 # k.fit(i_pca_train, train_y)
 # labels = k.predict(i_pca_test)
