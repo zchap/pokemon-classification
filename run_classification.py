@@ -23,6 +23,8 @@ import pandas as pd
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
+from keras.optimizers import RMSprop
+from keras.layers.normalization import BatchNormalization
 import neural_net_classification as nn
 
 # Loading image vector, stats vector, and labels.
@@ -158,15 +160,15 @@ def cross_validation(classifier, vec_x, vec_y):
 # Define model architecture
 def keras_nn_classifier():
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=(96, 96, 3)))
+    model.add(Conv2D(32, (3, 3), input_shape=(96, 96, 3), use_bias = True))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(32, (3, 3)))
+    model.add(Conv2D(32, (3, 3), use_bias = True))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
-    model.add(Conv2D(64, (3, 3)))
+    model.add(Conv2D(64, (3, 3), use_bias = True))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
 
@@ -200,6 +202,44 @@ for label in labels:
 # print("Precision score="+str(precision))
 # print("Accuracy score="+str(accuracy))
 
+def keras_mlp(x_train, y_train, x_test):
+    batch_size = 32
+    num_classes = 18
+    epochs = 100 # this seems to be the sweet spot, at least with the other parameters as they are now
+    dense = 601
+
+    x_train = numpy.array(x_train)
+    x_train = x_train.astype('float32')
+    # convert class vectors to binary class matrices
+    y_train = keras.utils.to_categorical(y_train, num_classes + 1)
+
+    model = Sequential()
+    model.add(Dense(dense, activation='relu', input_shape=(16,)))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(num_classes + 1, activation='softmax'))
+
+    model.compile(loss='categorical_crossentropy',
+                    optimizer=RMSprop(),
+                    metrics=['accuracy'])
+
+    model.fit(x_train, y_train, epochs=epochs, verbose=1, batch_size=batch_size)
+    #model.fit(x_train, y_train, epochs=epochs, verbose=1)
+
+    return model.predict(x_test)
 
 def prediction_probs(classifier, x_train, y_train, x_test, log_prob=False):
     """
@@ -305,3 +345,4 @@ def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
     # cross_validation(rbf_kernel_svm(), x_train_pca, y)
     # cross_validation(neural_net(), x_train_pca, y)
     # cross_validation(decision_tree(), x_train_pca, y)
+
