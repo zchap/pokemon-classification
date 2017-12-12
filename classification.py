@@ -31,7 +31,7 @@ def pca(X,comp):
     reshapeim = V.reshape(96,96)
     return reshapeim
 
-def pca_load_images(folder_name, comp)
+def pca_load_images(folder_name, comp):
     image_list = []
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
         im = imread(filename)[:, :, :3]
@@ -43,7 +43,7 @@ def pca_load_images(folder_name, comp)
         pca_green = pca(green, comp)
         im[:,:,1] = pca_red
         im[:,:,2] = pca_blue
-        im[:,:,3] = pca_red
+        im[:,:,3] = pca_green
         image_list.append(im)
     return image_list
 
