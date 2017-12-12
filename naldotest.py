@@ -22,8 +22,9 @@ def getlabels(csv_file_path):
     trainingLabels = labels
     return trainingLabels
 
+
 train_i = numpy.array(classification.load_poke_images('TrainingImages'), dtype='float32')
-train_y = numpy.array(getlabels('PokemonData/traininglabels.csv'), dtype='uint8')
+train_y = numpy.array(list(map(int, classification.load_training_labels('PokemonData/TrainingMetadata.csv'))))
 test_i = numpy.array(classification.load_poke_images('TestImages'), dtype='float32')
 print(train_i.shape)
 print(train_y.shape)
@@ -34,7 +35,7 @@ numpy.savetxt('labels.csv', cat_y, delimiter=',')
 
 
 batch_size = 32
-epochs = 30
+epochs = 2
 def cnn_model():
     model = Sequential()
     model.add(Conv2D(32, (3, 3), padding='same',
@@ -50,14 +51,14 @@ def cnn_model():
     model.add(Conv2D(64, (3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    #model.add(Dropout(0.25))
+    model.add(Dropout(0.25))
 
     model.add(Conv2D(128, (3, 3), padding='same',
                      activation='relu'))
     model.add(Conv2D(128, (3, 3), activation='relu'))
     model.add(BatchNormalization())
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    #model.add(Dropout(0.25))
+    model.add(Dropout(0.25))
 
     model.add(Flatten())
     model.add(Dense(256, activation='relu'))
@@ -66,17 +67,18 @@ def cnn_model():
     lr = 0.001
     sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='sparse_categorical_crossentropy',
-                  optimizer=sgd,
+                  optimizer='adam',
                   metrics=['accuracy'])
     model.fit(train_i, train_y,
               batch_size=batch_size,
               epochs=epochs,
-              verbose=2
+              verbose=1
               )
     y_pred = model.predict(test_i)
     return y_pred
 
-labels = cnn_model()
-demaxlabels = labels.argmax(axis=-1)
-numpy.savetxt('testlabels.csv', demaxlabels, delimiter=",")
+
+# labels = cnn_model()
+# demaxlabels = labels.argmax(axis=-1)
+# numpy.savetxt('testlabels.csv', demaxlabels, delimiter=",")
 

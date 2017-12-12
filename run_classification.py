@@ -29,12 +29,12 @@ import neural_net_classification as nn
 
 # Loading image vector, stats vector, and labels.
 train_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
-train_i = numpy.array(classification.load_poke_images('TrainingImages'))
+train_i = numpy.array(classification.load_poke_images('TrainingImages'), dtype='float32')
 train_y = numpy.array(list(map(int, classification.load_training_labels('PokemonData/TrainingMetadata.csv'))))
 train_pixels = list(train_i.flatten().reshape(601, 27648))
 
 test_s = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
-test_i = numpy.array(classification.load_poke_images('TestImages'))
+test_i = numpy.array(classification.load_poke_images('TestImages'), dtype='float32')
 test_pixels = list(test_i.flatten().reshape(201, 27648))
 
 # Converting stats matrix to float from string, so that classifiers can be used on them.
@@ -59,6 +59,50 @@ test_x = []
 for n in range(0, len(test_i)):
     test_x.append(numpy.array(test_s[n] + list(test_pixels[n])))
 test_x = numpy.array(test_x)
+
+def pca(X):
+  """  Principal Component Analysis
+    input: X, matrix with training data stored as flattened arrays in rows
+    return: projection matrix (with important dimensions first), variance
+    and mean."""
+
+  # get dimensions
+  num_data,dim = X.shape
+
+  # center data
+  mean_X = X.mean(axis=0)
+  X = X - mean_X
+
+  if dim>num_data:
+    # PCA - compact trick used
+    M = numpy.dot(X,X.T) # covariance matrix
+    e,EV = numpy.linalg.eigh(M) # eigenvalues and eigenvectors
+    tmp = numpy.dot(X.T,EV).T # this is the compact trick
+    V = tmp[::-1] # reverse since last eigenvectors are the ones we want
+    S = numpy.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order
+    for i in range(V.shape[1]):
+      V[:, i] /= S
+  else:
+    # PCA - SVD used
+    U,S,V = numpy.linalg.svd(X)
+    V = V[:num_data] # only makes sense to return the first num_data
+
+  # return the projection matrix, the variance and the mean
+  return V,S,mean_X
+
+
+pca_imgs = []
+count = 0
+for img in train_i[:5]:
+    count = count + 1
+    print(count)
+    img = img.reshape(-1, 3)
+    pca_imgs.append(pca(img))
+
+print(pca_imgs[0])
+print(pca_imgs[1])
+print(pca_imgs[2])
+print(len(pca_imgs))
 
 
 def k_nn(k):
@@ -337,9 +381,9 @@ def keras_mlp(x_train, y_train, x_test):
                     metrics=['accuracy'])
 
     model.fit(x_train, y_train, epochs=epochs, verbose=1, batch_size=batch_size)
-    #model.fit(x_train, y_train, epochs=epochs, verbose=1)
 
     return model.predict(x_test)
+
 
 def kaggle_submit(prediction):
     """
@@ -356,12 +400,13 @@ def kaggle_submit(prediction):
 
     return correct / len(prediction)
 
-labels = keras_mlp(train_s, train_y, test_s)
-demaxLabels = labels.argmax(axis = -1)
-numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
 
-print(demaxLabels)
-print(kaggle_submit(demaxLabels))
+# labels = keras_mlp(train_s, train_y, test_s)
+# demaxLabels = labels.argmax(axis = -1)
+# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+#
+# print(demaxLabels)
+# print(kaggle_submit(demaxLabels))
 
 
 
