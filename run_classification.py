@@ -29,12 +29,12 @@ import neural_net_classification as nn
 
 # Loading image vector, stats vector, and labels.
 train_s = classification.load_training_stats('PokemonData/TrainingMetadata.csv')
-train_i = numpy.array(classification.load_poke_images('TrainingImages'))
+train_i = numpy.array(classification.load_poke_images('TrainingImages'), dtype='float32')
 train_y = numpy.array(list(map(int, classification.load_training_labels('PokemonData/TrainingMetadata.csv'))))
 train_pixels = list(train_i.flatten().reshape(601, 27648))
 
 test_s = classification.load_test_stats('PokemonData/UnlabeledTestMetadata.csv')
-test_i = numpy.array(classification.load_poke_images('TestImages'))
+test_i = numpy.array(classification.load_poke_images('TestImages'), dtype='float32')
 test_pixels = list(test_i.flatten().reshape(201, 27648))
 
 # Converting stats matrix to float from string, so that classifiers can be used on them.
@@ -59,6 +59,50 @@ test_x = []
 for n in range(0, len(test_i)):
     test_x.append(numpy.array(test_s[n] + list(test_pixels[n])))
 test_x = numpy.array(test_x)
+
+def pca(X):
+  """  Principal Component Analysis
+    input: X, matrix with training data stored as flattened arrays in rows
+    return: projection matrix (with important dimensions first), variance
+    and mean."""
+
+  # get dimensions
+  num_data,dim = X.shape
+
+  # center data
+  mean_X = X.mean(axis=0)
+  X = X - mean_X
+
+  if dim>num_data:
+    # PCA - compact trick used
+    M = numpy.dot(X,X.T) # covariance matrix
+    e,EV = numpy.linalg.eigh(M) # eigenvalues and eigenvectors
+    tmp = numpy.dot(X.T,EV).T # this is the compact trick
+    V = tmp[::-1] # reverse since last eigenvectors are the ones we want
+    S = numpy.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order
+    for i in range(V.shape[1]):
+      V[:, i] /= S
+  else:
+    # PCA - SVD used
+    U,S,V = numpy.linalg.svd(X)
+    V = V[:num_data] # only makes sense to return the first num_data
+
+  # return the projection matrix, the variance and the mean
+  return V,S,mean_X
+
+
+pca_imgs = []
+count = 0
+for img in train_i[:5]:
+    count = count + 1
+    print(count)
+    img = img.reshape(-1, 3)
+    pca_imgs.append(pca(img))
+
+print(pca_imgs[0])
+print(pca_imgs[1])
+print(pca_imgs[2])
+print(len(pca_imgs))
 
 
 def k_nn(k):
@@ -132,114 +176,6 @@ def cross_validation(classifier, vec_x, vec_y):
     sorted(cv_results.keys())
     print(cv_results['test_score'])  # scores our classifier's accuracy
 
-
-# Looking at reducing the dimensionality of X using PCA
-# def pca_data(n_components,train_x):
-#     pca = PCA(n_components=n_components, whiten = True).fit(train_x)
-#     x_train_pca = pca.transform(train_x)
-#     return x_train_pca
-
-# #pca_data(.8,vector_x)
-# print("start")
-# pca = PCA(n_components=.8).fit(data_image)
-# print("Done computing pca")
-# train_pca = pca.transform(data_image)
-# #print (x_train_pca)
-# print ("Dimension of pca reduced data_image that conserves 80% of variance:", train_pca.shape)
-# print ("Original dimensions of data_image:", data_image.shape)
-
-# # PCA on image_i (giving error)
-# pca = PCA(n_components=.8, whiten = True).fit(vector_i)
-# i_train_pca = pca.transform(vector_i)
-# #print (i_train_pca)
-# print ("Dimension of pca reduced vector_i that conserves 80% of variance:", i_train_pca.shape)
-# print ("Original dimensions of vector_i:", vector_i.shape)
-
-
-# Using Keras Library for Convolutional Neural Network
-# Define model architecture
-def keras_nn_classifier():
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=(96, 96, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(32, (3, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(64, (3, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Flatten())
-    model.add(Dense(64))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(19))
-    model.add(Activation('sigmoid'))
-
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-    # Fit the model
-    y_new = numpy.array(train_y).reshape((-1, 1))
-    model.fit(train_i, y_new, epochs=27)
-    y_pred = model.predict(test_i)
-    return y_pred
-
-
-labels = nn.labels_from_sparse_matrix(keras_nn_classifier())
-for label in labels:
-    print(label)
-
-#keras_nn_classifier()
-
-
-# recall = recall_score(y_new,y_pred,average=None)
-# precision=precision_score(y_new,y_pred,average=None)
-# accuracy=accuracy_score(y_new,y_pred)
-# print("Recall score="+str(recall))
-# print("Precision score="+str(precision))
-# print("Accuracy score="+str(accuracy))
-
-def keras_mlp(x_train, y_train, x_test):
-    batch_size = 32
-    num_classes = 18
-    epochs = 100 # this seems to be the sweet spot, at least with the other parameters as they are now
-    dense = 601
-
-    x_train = numpy.array(x_train)
-    x_train = x_train.astype('float32')
-    # convert class vectors to binary class matrices
-    y_train = keras.utils.to_categorical(y_train, num_classes + 1)
-
-    model = Sequential()
-    model.add(Dense(dense, activation='relu', input_shape=(16,)))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.5))
-
-    model.add(Dense(dense, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.5))
-
-    model.add(Dense(dense, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.5))
-
-    model.add(Dense(dense, activation='relu'))
-    model.add(BatchNormalization())
-    model.add(Dropout(0.5))
-
-    model.add(Dense(num_classes + 1, activation='softmax'))
-
-    model.compile(loss='categorical_crossentropy',
-                    optimizer=RMSprop(),
-                    metrics=['accuracy'])
-
-    model.fit(x_train, y_train, epochs=epochs, verbose=1, batch_size=batch_size)
-    #model.fit(x_train, y_train, epochs=epochs, verbose=1)
-
-    return model.predict(x_test)
 
 def prediction_probs(classifier, x_train, y_train, x_test, log_prob=False):
     """
@@ -345,4 +281,133 @@ def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
     # cross_validation(rbf_kernel_svm(), x_train_pca, y)
     # cross_validation(neural_net(), x_train_pca, y)
     # cross_validation(decision_tree(), x_train_pca, y)
+
+# Looking at reducing the dimensionality of X using PCA
+# def pca_data(n_components,train_x):
+#     pca = PCA(n_components=n_components, whiten = True).fit(train_x)
+#     x_train_pca = pca.transform(train_x)
+#     return x_train_pca
+
+# #pca_data(.8,vector_x)
+# print("start")
+# pca = PCA(n_components=.8).fit(data_image)
+# print("Done computing pca")
+# train_pca = pca.transform(data_image)
+# #print (x_train_pca)
+# print ("Dimension of pca reduced data_image that conserves 80% of variance:", train_pca.shape)
+# print ("Original dimensions of data_image:", data_image.shape)
+
+# # PCA on image_i (giving error)
+# pca = PCA(n_components=.8, whiten = True).fit(vector_i)
+# i_train_pca = pca.transform(vector_i)
+# #print (i_train_pca)
+# print ("Dimension of pca reduced vector_i that conserves 80% of variance:", i_train_pca.shape)
+# print ("Original dimensions of vector_i:", vector_i.shape)
+
+
+# Using Keras Library for Convolutional Neural Network
+# Define model architecture
+def keras_nn_classifier():
+    model = Sequential()
+    model.add(Conv2D(32, (3, 3), input_shape=(96, 96, 3), use_bias = True))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Conv2D(32, (3, 3), use_bias = True))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Conv2D(64, (3, 3), use_bias = True))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+
+    model.add(Flatten())
+    model.add(Dense(64))
+    model.add(Activation('relu'))
+    model.add(Dropout(0.5))
+    model.add(Dense(19))
+    model.add(Activation('sigmoid'))
+
+    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+
+    # Fit the model
+    y_new = numpy.array(train_y).reshape((-1, 1))
+    model.fit(train_i, y_new, epochs=27)
+    y_pred = model.predict(test_i)
+    return y_pred
+
+#keras_nn_classifier()
+
+
+# recall = recall_score(y_new,y_pred,average=None)
+# precision=precision_score(y_new,y_pred,average=None)
+# accuracy=accuracy_score(y_new,y_pred)
+# print("Recall score="+str(recall))
+# print("Precision score="+str(precision))
+# print("Accuracy score="+str(accuracy))
+
+def keras_mlp(x_train, y_train, x_test):
+    batch_size = 32
+    num_classes = 18
+    epochs = 100  # this seems to be the sweet spot, at least with the other parameters as they are now
+    dense = 601
+
+    x_train = numpy.array(x_train)
+    x_train = x_train.astype('float32')
+    # convert class vectors to binary class matrices
+    y_train = keras.utils.to_categorical(y_train, num_classes + 1)
+
+    model = Sequential()
+    model.add(Dense(dense, activation='relu', input_shape=(16,)))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(dense, activation='relu'))
+    model.add(BatchNormalization())
+    model.add(Dropout(0.5))
+
+    model.add(Dense(num_classes + 1, activation='softmax'))
+
+    model.compile(loss='categorical_crossentropy',
+                    optimizer=RMSprop(),
+                    metrics=['accuracy'])
+
+    model.fit(x_train, y_train, epochs=epochs, verbose=1, batch_size=batch_size)
+
+    return model.predict(x_test)
+
+
+def kaggle_submit(prediction):
+    """
+    Tests prediction against true y values
+    """
+    # These are the types for the test data
+    test_y = [2.0, 2.0, 12.0, 12.0, 10.0, 10.0, 8.0, 18.0, 2.0, 8.0, 12.0, 12.0, 12.0, 1.0, 7.0, 7.0, 7.0, 5.0, 3.0, 13.0, 13.0, 4.0, 1.0, 3.0, 8.0, 3.0, 7.0, 7.0, 9.0, 1.0, 1.0, 3.0, 3.0, 11.0, 1.0, 4.0, 2.0, 15.0, 15.0, 11.0, 2.0, 2.0, 10.0, 12.0, 3.0, 18.0, 4.0, 3.0, 1.0, 5.0, 1.0, 18.0, 12.0, 16.0, 3.0, 6.0, 3.0, 3.0, 9.0, 1.0, 6.0, 4.0, 1.0, 1.0, 13.0, 11.0, 2.0, 5.0, 5.0, 2.0, 3.0, 1.0, 1.0, 10.0, 10.0, 11.0, 12.0, 1.0, 1.0, 12.0, 12.0, 1.0, 1.0, 7.0, 4.0, 8.0, 11.0, 9.0, 5.0, 13.0, 13.0, 3.0, 3.0, 3.0, 9.0, 13.0, 14.0, 11.0, 16.0, 11.0, 6.0, 15.0, 17.0, 17.0, 6.0, 11.0, 5.0, 3.0, 12.0, 4.0, 13.0, 3.0, 3.0, 14.0, 1.0, 1.0, 17.0, 15.0, 1.0, 9.0, 8.0, 8.0, 3.0, 3.0, 16.0, 9.0, 5.0, 4.0, 11.0, 3.0, 1.0, 14.0, 5.0, 5.0, 5.0, 2.0, 2.0, 3.0, 10.0, 10.0, 13.0, 11.0, 9.0, 3.0, 12.0, 5.0, 5.0, 5.0, 9.0, 14.0, 3.0, 16.0, 3.0, 3.0, 3.0, 12.0, 4.0, 11.0, 15.0, 6.0, 15.0, 9.0, 16.0, 15.0, 3.0, 1.0, 3.0, 3.0, 2.0, 7.0, 1.0, 17.0, 18.0, 18.0, 16.0, 3.0, 3.0, 4.0, 13.0, 13.0, 17.0, 14.0, 13.0, 2.0, 12.0, 13.0, 5.0, 5.0, 8.0, 1.0, 1.0, 5.0, 14.0, 4.0, 3.0, 11.0, 11.0, 12.0, 4.0, 11.0, 7.0]
+
+    correct = 0
+
+    for i in range(len(prediction)):
+        if prediction[i] == test_y[i]:
+            correct += 1
+
+    return correct / len(prediction)
+
+
+# labels = keras_mlp(train_s, train_y, test_s)
+# demaxLabels = labels.argmax(axis = -1)
+# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+#
+# print(demaxLabels)
+# print(kaggle_submit(demaxLabels))
+
+
+
 
