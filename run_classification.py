@@ -133,6 +133,111 @@ def cross_validation(classifier, vec_x, vec_y):
     print(cv_results['test_score'])  # scores our classifier's accuracy
 
 
+def prediction_probs(classifier, x_train, y_train, x_test, log_prob=False):
+    """
+    Get probability for each classification to easily combine later
+    Note: Will only work for classifiers with built-in 'predict_proba' and 'predict_log_proba' methods.
+    Input: classifier - Classifier created by pre-existing sklearn method
+           log_prob - Boolean True if want the log probability, False if not (default)
+    Output: probs - List? of probabilities for each prediction
+    """
+    # First fit the classifier to the training data
+    model = classifier.fit(x_train, y_train)
+    # Then use the fitted classifier to make a prediction on the test data and print the probabilities
+    if log_prob:
+        y_probs = model.predict_log_proba(x_test)
+    else:
+        y_probs = model.predict_proba(x_test)
+
+    return y_probs
+
+
+def combine_probs(a_probs, b_probs):
+    """
+    Input: a_probs, b_probs - Numpy arrays of the form output by prediction_probs. They contain the
+           prediction probabilities made by the classifier for each class.
+    Output: prediction - List containing prediction for each Pokemon
+    Helper function to combine the predictions made by the two classifiers
+    """
+    prediction = []
+    for i in range(len(a_probs)):
+        # avg will contain the average probability for each class
+        avg = (a_probs[i] + b_probs[i]) / 2
+        # add class with highest probability to prediction
+        prediction.append(numpy.argmax(avg))
+    return prediction
+
+
+def matt_cross_validate(x, y, cv=3, log_prob=False):
+    """
+    Input: x - Training data x values
+           y - Training data y values
+           cv - Number of subsets to use for cross-validation
+           log_prob - Boolean True if want the log probability, False if not (default)
+    Output: scores - List of percentages indicating how accurate the classifiers
+                     were (one percentage for each subset in the cross-validation)
+    """
+
+    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
+    linear_svc = LinearSVC()
+    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
+    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
+    i_classifier = neural_net()
+
+    scores = []
+    # Note: this isn't a true cross-validation. there's nothing to prevent it from double counting/having overlapping subsets.
+    for count in range(cv):
+        print('Starting CV ' + str(count))
+        # Note: train_test_split step is instantaneous
+        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=(1 / cv))
+
+        # Note: This step takes a long time
+        # Note: Dimensions of s_probs are 601 x 18 on full data
+        s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
+        i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
+
+        # Note: combine_probs step is pretty fast
+        prediction = combine_probs(s_probs, i_probs)
+
+        # check accuracy
+        accuracy = accuracy_score(y_test, prediction)
+        scores.append(accuracy)
+
+    return scores
+
+
+def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
+    """
+    This is for getting a prediction from two classifiers
+    """
+
+    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
+    linear_svc = linear_svm()
+    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
+    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
+    i_classifier = neural_net()
+
+    # Note: This step takes a long time
+    # Note: Dimensions of s_probs are 601 x 18 on full data
+    s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
+    i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
+
+    # Note: combine_probs step is pretty fast
+    prediction = combine_probs(s_probs, i_probs)
+
+    # check accuracy
+    accuracy = accuracy_score(y_test, prediction)
+
+    return accuracy, prediction
+
+    # cross_validation(k_nn(9), x_train_pca, y)
+    # cross_validation(linear_svm(), x_train_pca, y)
+    # cross_validation(linear_kernel_svm(), vector_x, y)
+    # cross_validation(poly_kernel_svm(), x_train_pca, y)
+    # cross_validation(rbf_kernel_svm(), x_train_pca, y)
+    # cross_validation(neural_net(), x_train_pca, y)
+    # cross_validation(decision_tree(), x_train_pca, y)
+
 # Looking at reducing the dimensionality of X using PCA
 # def pca_data(n_components,train_x):
 #     pca = PCA(n_components=n_components, whiten = True).fit(train_x)
@@ -241,108 +346,28 @@ def keras_mlp(x_train, y_train, x_test):
 
     return model.predict(x_test)
 
-def prediction_probs(classifier, x_train, y_train, x_test, log_prob=False):
+def kaggle_submit(prediction):
     """
-    Get probability for each classification to easily combine later
-    Note: Will only work for classifiers with built-in 'predict_proba' and 'predict_log_proba' methods.
-    Input: classifier - Classifier created by pre-existing sklearn method
-           log_prob - Boolean True if want the log probability, False if not (default)
-    Output: probs - List? of probabilities for each prediction
+    Tests prediction against true y values
     """
-    # First fit the classifier to the training data
-    model = classifier.fit(x_train, y_train)
-    # Then use the fitted classifier to make a prediction on the test data and print the probabilities
-    if log_prob:
-        y_probs = model.predict_log_proba(x_test)
-    else:
-        y_probs = model.predict_proba(x_test)
+    # These are the types for the test data
+    test_y = [2.0, 2.0, 12.0, 12.0, 10.0, 10.0, 8.0, 18.0, 2.0, 8.0, 12.0, 12.0, 12.0, 1.0, 7.0, 7.0, 7.0, 5.0, 3.0, 13.0, 13.0, 4.0, 1.0, 3.0, 8.0, 3.0, 7.0, 7.0, 9.0, 1.0, 1.0, 3.0, 3.0, 11.0, 1.0, 4.0, 2.0, 15.0, 15.0, 11.0, 2.0, 2.0, 10.0, 12.0, 3.0, 18.0, 4.0, 3.0, 1.0, 5.0, 1.0, 18.0, 12.0, 16.0, 3.0, 6.0, 3.0, 3.0, 9.0, 1.0, 6.0, 4.0, 1.0, 1.0, 13.0, 11.0, 2.0, 5.0, 5.0, 2.0, 3.0, 1.0, 1.0, 10.0, 10.0, 11.0, 12.0, 1.0, 1.0, 12.0, 12.0, 1.0, 1.0, 7.0, 4.0, 8.0, 11.0, 9.0, 5.0, 13.0, 13.0, 3.0, 3.0, 3.0, 9.0, 13.0, 14.0, 11.0, 16.0, 11.0, 6.0, 15.0, 17.0, 17.0, 6.0, 11.0, 5.0, 3.0, 12.0, 4.0, 13.0, 3.0, 3.0, 14.0, 1.0, 1.0, 17.0, 15.0, 1.0, 9.0, 8.0, 8.0, 3.0, 3.0, 16.0, 9.0, 5.0, 4.0, 11.0, 3.0, 1.0, 14.0, 5.0, 5.0, 5.0, 2.0, 2.0, 3.0, 10.0, 10.0, 13.0, 11.0, 9.0, 3.0, 12.0, 5.0, 5.0, 5.0, 9.0, 14.0, 3.0, 16.0, 3.0, 3.0, 3.0, 12.0, 4.0, 11.0, 15.0, 6.0, 15.0, 9.0, 16.0, 15.0, 3.0, 1.0, 3.0, 3.0, 2.0, 7.0, 1.0, 17.0, 18.0, 18.0, 16.0, 3.0, 3.0, 4.0, 13.0, 13.0, 17.0, 14.0, 13.0, 2.0, 12.0, 13.0, 5.0, 5.0, 8.0, 1.0, 1.0, 5.0, 14.0, 4.0, 3.0, 11.0, 11.0, 12.0, 4.0, 11.0, 7.0]
 
-    return y_probs
+    correct = 0
 
+    for i in range(len(prediction)):
+        if prediction[i] == test_y[i]:
+            correct += 1
 
-def combine_probs(a_probs, b_probs):
-    """
-    Input: a_probs, b_probs - Numpy arrays of the form output by prediction_probs. They contain the
-           prediction probabilities made by the classifier for each class.
-    Output: prediction - List containing prediction for each Pokemon
-    Helper function to combine the predictions made by the two classifiers
-    """
-    prediction = []
-    for i in range(len(a_probs)):
-        # avg will contain the average probability for each class
-        avg = (a_probs[i] + b_probs[i]) / 2
-        # add class with highest probability to prediction
-        prediction.append(numpy.argmax(avg))
-    return prediction
+    return correct / len(prediction)
+
+labels = keras_mlp(train_s, train_y, test_s)
+demaxLabels = labels.argmax(axis = -1)
+numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+
+print(demaxLabels)
+print(kaggle_submit(demaxLabels))
 
 
-def matt_cross_validate(x, y, cv=3, log_prob=False):
-    """
-    Input: x - Training data x values
-           y - Training data y values
-           cv - Number of subsets to use for cross-validation
-           log_prob - Boolean True if want the log probability, False if not (default)
-    Output: scores - List of percentages indicating how accurate the classifiers
-                     were (one percentage for each subset in the cross-validation)
-    """
 
-    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
-    linear_svc = LinearSVC()
-    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
-    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
-    i_classifier = neural_net()
-
-    scores = []
-    # Note: this isn't a true cross-validation. there's nothing to prevent it from double counting/having overlapping subsets.
-    for count in range(cv):
-        print('Starting CV ' + str(count))
-        # Note: train_test_split step is instantaneous
-        x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=(1 / cv))
-
-        # Note: This step takes a long time
-        # Note: Dimensions of s_probs are 601 x 18 on full data
-        s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
-        i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
-
-        # Note: combine_probs step is pretty fast
-        prediction = combine_probs(s_probs, i_probs)
-
-        # check accuracy
-        accuracy = accuracy_score(y_test, prediction)
-        scores.append(accuracy)
-
-    return scores
-
-
-def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
-    """
-    This is for getting a prediction from two classifiers
-    """
-
-    # use LinearSVC() instead of svm.SVC(kernel = 'linear') because it should be faster this way
-    linear_svc = linear_svm()
-    # do this extra step for the linear SVC because the LinearSVC() classifier doesn't have a predict_proba() method
-    s_classifier = CalibratedClassifierCV(linear_svc, method='sigmoid', cv=3)
-    i_classifier = neural_net()
-
-    # Note: This step takes a long time
-    # Note: Dimensions of s_probs are 601 x 18 on full data
-    s_probs = prediction_probs(s_classifier, x_train, y_train, x_test, log_prob)
-    i_probs = prediction_probs(i_classifier, x_train, y_train, x_test, log_prob)
-
-    # Note: combine_probs step is pretty fast
-    prediction = combine_probs(s_probs, i_probs)
-
-    # check accuracy
-    accuracy = accuracy_score(y_test, prediction)
-
-    return accuracy, prediction
-
-    # cross_validation(k_nn(9), x_train_pca, y)
-    # cross_validation(linear_svm(), x_train_pca, y)
-    # cross_validation(linear_kernel_svm(), vector_x, y)
-    # cross_validation(poly_kernel_svm(), x_train_pca, y)
-    # cross_validation(rbf_kernel_svm(), x_train_pca, y)
-    # cross_validation(neural_net(), x_train_pca, y)
-    # cross_validation(decision_tree(), x_train_pca, y)
 
