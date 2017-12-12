@@ -73,10 +73,4 @@ def labels_from_sparse_matrix(input):
 
     return result
 
-sparse_labels = keras_nn_classification()
-labels = labels_from_sparse_matrix(sparse_labels)
-
-for label in labels:
-    print(label)
-
 

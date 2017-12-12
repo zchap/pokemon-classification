@@ -292,11 +292,6 @@ def keras_nn_classifier():
     y_pred = model.predict(test_i)
     return y_pred
 
-
-labels = nn.labels_from_sparse_matrix(keras_nn_classifier())
-for label in labels:
-    print(label)
-
 #keras_nn_classifier()
 
 
@@ -310,7 +305,7 @@ for label in labels:
 def keras_mlp(x_train, y_train, x_test):
     batch_size = 32
     num_classes = 18
-    epochs = 100 # this seems to be the sweet spot, at least with the other parameters as they are now
+    epochs = 100  # this seems to be the sweet spot, at least with the other parameters as they are now
     dense = 601
 
     x_train = numpy.array(x_train)
