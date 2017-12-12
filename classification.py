@@ -28,7 +28,7 @@ def pca(X,comp):
     for i in range(V.shape[1]):
         V[:,i] /= S
     V = V[:comp]
-    reshapeim = V.reshape(comp,comp)
+    reshapeim = V.reshape(comp, comp)
     return reshapeim
 
 def pca_load_images(folder_name, comp):
