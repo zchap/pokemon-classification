@@ -19,7 +19,9 @@ from sklearn.decomposition import PCA, KernelPCA
 from sklearn.metrics import confusion_matrix
 from sklearn.metrics import classification_report, recall_score, precision_score, accuracy_score
 from sklearn.model_selection import GridSearchCV
+from sklearn.preprocessing import StandardScaler
 import pandas as pd
+from pandas import DataFrame
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
@@ -60,6 +62,25 @@ for n in range(0, len(test_i)):
     test_x.append(numpy.array(test_s[n] + list(test_pixels[n])))
 test_x = numpy.array(test_x)
 
+# PCA for train_i and test_i
+y_train = keras.utils.to_categorical(train_y, 19)
+scaler = StandardScaler()
+scaler.fit(train_pixels)
+fit_train_i = scaler.transform(train_pixels)
+fit_test_i = scaler.transform(test_pixels)
+pca = PCA(n_components=0.8)
+i_pca_train = pca.fit_transform(fit_train_i)
+i_pca_test = pca.transform(fit_test_i)
+pca_std = numpy.std(i_pca_train)
+print(i_pca_train.shape)
+print(i_pca_test.shape)
+# Inverse PCA (if needed to get original matrix dimensions)
+inv_pca_train = pca.inverse_transform(i_pca_train)
+new_train = scaler.inverse_transform(inv_pca_train)
+inv_pca_test = pca.inverse_transform(i_pca_test)
+new_test = scaler.inverse_transform(inv_pca_test)
+print(new_train.shape)
+print(new_test.shape)
 
 def k_nn(k):
     """
@@ -260,44 +281,78 @@ def matt_predict(x_train, y_train, x_test, y_test, log_prob=False):
 # print ("Dimension of pca reduced vector_i that conserves 80% of variance:", i_train_pca.shape)
 # print ("Original dimensions of vector_i:", vector_i.shape)
 
-
 # Using Keras Library for Convolutional Neural Network
 # Define model architecture
-def keras_nn_classifier():
-    model = Sequential()
-    model.add(Conv2D(32, (3, 3), input_shape=(96, 96, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
+# def keras_nn_classifier():
+#     y_train = keras.utils.to_categorical(train_y, num_classes + 1)
+#     scaler = StandardScaler()
+#     scaler.fit(train_pixels)
+#     fit_train_i = scaler.transform(train_pixels)
+#     fit_test_i = scaler.transform(test_pixels)
+#     pca = PCA(n_components=0.8)
+#     i_pca_train = pca.fit_transform(fit_train_i)
+#     i_pca_test = pca.transform(fit_test_i)
+#     pca_std=numpy.std(i_pca_train)
+#     print(i_pca_train.shape)
+#     print(i_pca_test.shape)
+#     inv_pca_train = pca.inverse_transform(i_pca_train)
+#     new_train = scaler.inverse_transform(inv_pca_train)
+#     inv_pca_test = pca.inverse_transform(i_pca_test)
+#     new_test = scaler.inverse_transform(inv_pca_test)
+#     print(new_train.shape)
+#     print(new_test.shape)
+#
+#     model = Sequential()
+#     model.add(Conv2D(32, (5, 5), input_shape=(96, 96, 3), use_bias = True))
+#     model.add(Activation('relu'))
+#     model.add(BatchNormalization())
+#     model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+#     # model.add(Conv2D(32, (3, 3), use_bias = True))
+#     # model.add(Activation('relu'))
+#     # model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+#     model.add(Conv2D(64, (3, 3), use_bias = True))
+#     model.add(Activation('relu'))
+#     model.add(BatchNormalization())
+#     model.add(MaxPooling2D(pool_size=(2, 2)))
+#
+#     model.add(Flatten())
+#     model.add(Dense(128))
+#     model.add(Activation('relu'))
+#     model.add(Dropout(0.5))
+#     model.add(Dense(19))
+#     model.add(Activation('softmax'))
+#
+#     model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
+#
+#     data_aug = ImageDataGenerator(rotation_range = 10, shear_range = 0.1, zoom_range = 0.1, horizontal_flip = True)
+#     # Fit the model
+#     y_new = numpy.array(train_y).reshape((-1, 1))
+#     model.fit(train_i, y_new, epochs=27, shuffle = True)
+#     #model.fit_generator(data_aug.flow(train_i,y_new), epochs=27, shuffle = True)
+#     y_pred = model.predict(train_i)
+#     y_pred_labels = y_pred.argmax(axis=-1)
+#     y_pred_test = model.predict(test_i)
+#     y_pred_test_labels = y_pred_test.argmax(axis=-1)
+#     print("These are predicted training labels")
+#     print(y_pred_labels)
+#     print("# of labels: " + str(y_pred_labels.size))
+#
+#     acc = numpy.sum(y_pred_labels == train_y) / numpy.size(y_pred_labels)
+#     print("Test accuracy on training labels = {}".format(acc))
+#     print("These are the predicted testing labels")
+#     print(y_pred_test_labels)
+#     for i in range(0, len(y_pred_test_labels)):
+#         print(y_pred_test_labels[i])
+#
+#
+#     #y_pred = model.predict(test_i)
+#     return
 
-    model.add(Conv2D(32, (3, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Conv2D(64, (3, 3), use_bias = True))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-
-    model.add(Flatten())
-    model.add(Dense(64))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(19))
-    model.add(Activation('sigmoid'))
-
-    model.compile(optimizer='adam', loss='sparse_categorical_crossentropy', metrics=['accuracy'])
-
-    # Fit the model
-    y_new = numpy.array(train_y).reshape((-1, 1))
-    model.fit(train_i, y_new, epochs=27)
-    y_pred = model.predict(test_i)
-    return y_pred
-
-
-labels = nn.labels_from_sparse_matrix(keras_nn_classifier())
-for label in labels:
-    print(label)
-
-#keras_nn_classifier()
+# labels = nn.labels_from_sparse_matrix(keras_nn_classifier())
+# for label in labels:
+#     print(label)
 
 
 # recall = recall_score(y_new,y_pred,average=None)
@@ -361,13 +416,24 @@ def kaggle_submit(prediction):
 
     return correct / len(prediction)
 
-labels = keras_mlp(train_s, train_y, test_s)
-demaxLabels = labels.argmax(axis = -1)
-numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+# labels = keras_mlp(train_s, train_y, test_s)
+# demaxLabels = labels.argmax(axis = -1)
+# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+#
+# print(demaxLabels)
+# print(kaggle_submit(demaxLabels))
 
-print(demaxLabels)
-print(kaggle_submit(demaxLabels))
+#Converts arrays to txt files
+def array_to_text(train, test):
+    a = numpy.array(train)
+    b = numpy.array(test)
+    return a.tofile('train.txt', sep=" ", format = "%s"), b.tofile('test.txt', sep=" ", format = "%s")
 
+# k = neural_net()
+# k.fit(i_pca_train, train_y)
+# labels = k.predict(i_pca_test)
+# for i in range(0,len(labels)):
+#     print (labels[i])
 
-
+array_to_text(train_i, test_i)
 
