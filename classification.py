@@ -20,30 +20,31 @@ def rgb2gray(rgb):
 def pca(X,comp):
     mean_X = X.mean(axis=0)
     X = X - mean_X
-    M = np.dot(X, X.T) # covariance matrix
-    e,EV = npl.linalg.eigh(M) # eigenvalues and eigenvectors
+    M = np.dot(X, X.T)
+    e,EV = npl.linalg.eigh(M)
     tmp = np.dot(X.T, EV).T # this is the compact trick
     V = tmp[::-1] # reverse since last eigenvectors are the ones we want
     S = np.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order
     for i in range(V.shape[1]):
         V[:,i] /= S
     V = V[:comp]
-    reshapeim = V.reshape(96,96)
+    reshapeim = V.reshape(comp,comp)
     return reshapeim
 
 def pca_load_images(folder_name, comp):
     image_list = []
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
         im = imread(filename)[:, :, :3]
-        red = im[:,:,1]
-        green = im[:,:2]
-        blue = im[:,:,3]
+        red = im[:,:,0]
+        green = im[:,:1]
+        blue = im[:,:,2]
         pca_red = pca(red, comp)
         pca_blue = pca(blue, comp)
         pca_green = pca(green, comp)
-        im[:,:,1] = pca_red
-        im[:,:,2] = pca_blue
-        im[:,:,3] = pca_green
+        im[:,:,0] = pca_red
+        im[:,:,1] = pca_blue
+        im[:,:,2] = pca_green
+        im.flatten()
         image_list.append(im)
     return image_list
 
