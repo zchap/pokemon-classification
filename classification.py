@@ -6,7 +6,9 @@ import os
 import io
 import matplotlib.image as mpimage
 import matplotlib.colors as colors
+
 from scipy.misc import imread
+from sklearn import decomposition
 from sklearn.decomposition import PCA
 
 
@@ -17,19 +19,11 @@ import glob
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [0.299, 0.587, 0.114])
 
-def pca(X,comp):
-    mean_X = X.mean(axis=0)
-    X = X - mean_X
-    M = np.dot(X, X.T)
-    e,EV = npl.linalg.eigh(M)
-    tmp = np.dot(X.T, EV).T # this is the compact trick
-    V = tmp[::-1] # reverse since last eigenvectors are the ones we want
-    S = np.sqrt(e)[::-1] # reverse since eigenvalues are in increasing order
-    for i in range(V.shape[1]):
-        V[:,i] /= S
-    V = V[:comp]
-    reshapeim = V.reshape(comp, comp)
-    return reshapeim
+def pca_func(X,comp):
+    pca = decomposition.PCA(n_components=comp)
+    pca.fit(X)
+    new_x = pca.transform(X)
+    return new_x
 
 def pca_load_images(folder_name, comp):
     image_list = []
@@ -38,9 +32,10 @@ def pca_load_images(folder_name, comp):
         red = im[:,:,0]
         green = im[:,:1]
         blue = im[:,:,2]
-        pca_red = pca(red, comp)
-        pca_blue = pca(blue, comp)
-        pca_green = pca(green, comp)
+        pca_red = pca_func(red, comp)
+        print(red.shape)
+        pca_blue = pca_func(blue, comp)
+        pca_green = pca_func(green, comp)
         im[:,:,0] = pca_red
         im[:,:,1] = pca_blue
         im[:,:,2] = pca_green
