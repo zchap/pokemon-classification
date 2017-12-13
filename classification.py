@@ -54,10 +54,17 @@ def load_poke_images(folder_name):
     return image_list
 
 
+def load_poke_images_grayscale(folder_name):
+    image_list = []
 
+    for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
+        im = imread(filename)[:,:,:3]
+        gray = rgb2gray(im)
+        gray = gray.flatten()
+        image_list.append(gray)
+    return image_list
 
-
-def load_poke_images_grayscale(folder_name,comp):
+def pca_load_images_grayscale(folder_name,comp):
     image_list = []
 
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
@@ -68,9 +75,6 @@ def load_poke_images_grayscale(folder_name,comp):
     return image_list
 
 
-
-
-    return
 def load_pokemon_images(folder_name):
     image_list = []
 
