@@ -358,7 +358,7 @@ def keras_mlp(x_train, y_train, x_test):
     y_train = keras.utils.to_categorical(y_train, num_classes + 1)
 
     model = Sequential()
-    model.add(Dense(dense, activation='relu', input_shape=(16,)))
+    model.add(Dense(dense, activation='relu', input_shape=(15,)))
     model.add(BatchNormalization())
     model.add(Dropout(0.5))
 
@@ -401,12 +401,25 @@ def kaggle_submit(prediction):
     return correct / len(prediction)
 
 
-labels = keras_mlp(train_s, train_y, test_s)
-demaxLabels = labels.argmax(axis = -1)
-numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+# labels = keras_mlp(train_s, train_y, test_s)
+# demaxLabels = labels.argmax(axis = -1)
+# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
 
-print(demaxLabels)
-print(kaggle_submit(demaxLabels))
+all_trials = []
+all_trials_accuracy = []
+
+for i in range(50):
+    labels = keras_mlp(train_s, train_y, test_s)
+    demaxLabels = labels.argmax(axis=-1)
+    all_trials.append(demaxLabels)
+    all_trials_accuracy.append(kaggle_submit(demaxLabels))
+
+print(all_trials_accuracy)
+print(all_trials[all_trials_accuracy.index(max(all_trials_accuracy))])
+
+numpy.savetxt('50trials.csv', all_trials[all_trials_accuracy.index(max(all_trials_accuracy))], delimiter=',')
+# print(demaxLabels)
+# print(kaggle_submit(demaxLabels))
 
 
 

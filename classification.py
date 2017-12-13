@@ -114,8 +114,8 @@ def load_test_stats(csv_file_path):
     # we can ignore the first element in stats_list
     truncated_stats_list = stats_list[1:]
     for i in range(0, len(truncated_stats_list)):
-        truncated_stats_list[i] = (truncated_stats_list[i])  # this includes the pokemon number
-        #truncated_stats_list[i] = (truncated_stats_list[i])[1:]  # this removes the pokemon number
+        # truncated_stats_list[i] = (truncated_stats_list[i])  # this includes the pokemon number
+        truncated_stats_list[i] = (truncated_stats_list[i])[1:]  # this removes the pokemon number
 
     return truncated_stats_list
 
