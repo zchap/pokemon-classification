@@ -50,7 +50,7 @@ def kaggle_submit(prediction):
 def merged(s_train, i_train, y_train, s_test, i_test):
     batch_size = 32
     num_classes = 18
-    epochs = 100
+    epochs = 60
     dense = 601
 
     s_train = numpy.array(s_train).astype('float32')
@@ -59,39 +59,47 @@ def merged(s_train, i_train, y_train, s_test, i_test):
     y_train = keras.utils.to_categorical(y_train, num_classes + 1)
 
     stat_branch = Sequential()
-    stat_branch.add(Dense(dense, activation='relu', input_shape=(15,)))
+    stat_branch.add(Dense(dense, input_shape=(15,)))
     stat_branch.add(BatchNormalization())
+    stat_branch.add(Activation('relu'))
     stat_branch.add(Dropout(0.5))
 
-    stat_branch.add(Dense(dense, activation='relu'))
+    stat_branch.add(Dense(dense))
     stat_branch.add(BatchNormalization())
+    stat_branch.add(Activation('relu'))
     stat_branch.add(Dropout(0.5))
 
-    stat_branch.add(Dense(dense, activation='relu'))
+    stat_branch.add(Dense(dense))
     stat_branch.add(BatchNormalization())
+    stat_branch.add(Activation('relu'))
     stat_branch.add(Dropout(0.5))
 
-    stat_branch.add(Dense(dense, activation='relu'))
+    stat_branch.add(Dense(dense))
+    stat_branch.add(Activation('relu'))
     stat_branch.add(BatchNormalization())
     stat_branch.add(Dropout(0.5))
 
     stat_branch.add(Dense(num_classes + 1, activation='softmax'))
 
     image_branch = Sequential()
-    image_branch.add(Dense(dense, input_shape = (i_train.shape[1],), init = 'normal', activation = 'relu'))
+    image_branch.add(Dense(dense, input_shape = (i_train.shape[1],), init = 'normal'))
     image_branch.add(BatchNormalization())
+    image_branch.add(Activation('relu'))
     image_branch.add(Dropout(0.5))
 
-    image_branch.add(Dense(dense, activation='relu'))
+    image_branch.add(Dense(dense))
     image_branch.add(BatchNormalization())
+    image_branch.add(Activation('relu'))
     image_branch.add(Dropout(0.5))
 
-    image_branch.add(Dense(dense, activation='relu'))
+    image_branch.add(Dense(dense))
     image_branch.add(BatchNormalization())
+    image_branch.add(Activation('relu'))
     image_branch.add(Dropout(0.5))
 
-    image_branch.add(Dense(dense, activation='relu'))
+    image_branch.add(Dense(dense))
     image_branch.add(BatchNormalization())
+    image_branch.add(Activation('relu'))
     image_branch.add(Dropout(0.5))
 
     image_branch.add(Dense(num_classes + 1, activation='softmax'))

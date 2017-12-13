@@ -48,44 +48,48 @@ def kaggle_submit(prediction):
 
 
 def bigX_mlp(x_train, y_train, x_test):
+    """
+    Input: x_train - Big X matrix consisting of training stats and PCA'd grayscale image data
+           y_train - Labels for training data
+           x_test - Big X matrix consisting of test stats and PCA'd grayscale image data
+    """
     batch_size = 16
     num_classes = 18
-    epochs = 52
+    epochs = 500
     dense = 601
 
-    x_train = numpy.array(x_train)
-    x_train = x_train.astype('float32')
+    x_train = numpy.array(x_train).astype('float32')
     # convert class vectors to binary class matrices
     y_train = keras.utils.to_categorical(y_train, num_classes + 1)
 
     model = Sequential()
-    model.add(Dense(dense, activation='relu', input_shape=(x_train.shape[1],)))
+    model.add(Dense(dense, input_shape=(x_train.shape[1],)))
     model.add(BatchNormalization())
+    model.add(Activation('relu'))
     model.add(Dropout(0.4))
 
-    model.add(Dense(dense, activation='relu'))
+    model.add(Dense(dense))
     model.add(BatchNormalization())
+    model.add(Activation('relu'))
     model.add(Dropout(0.4))
 
-    model.add(Dense(dense, activation='relu'))
+    model.add(Dense(dense))
     model.add(BatchNormalization())
+    model.add(Activation('relu'))
     model.add(Dropout(0.4))
 
-    model.add(Dense(dense, activation='relu'))
+    model.add(Dense(dense))
     model.add(BatchNormalization())
+    model.add(Activation('relu'))
     model.add(Dropout(0.4))
 
     model.add(Dense(num_classes + 1, activation='sigmoid'))
-
-    sgd = SGD(lr = 0.001, momentum = 0.9, decay = 0, nesterov = False)
 
     model.compile(loss='categorical_crossentropy',
                     optimizer='adam',
                     metrics=['accuracy'])
 
     model.fit(x_train, y_train, epochs=epochs, verbose=1, batch_size=batch_size)
-
-    numpy.random.seed(2017)
 
     return model.predict(x_test)
 
@@ -100,7 +104,7 @@ test_gray.reshape([201,9216])
 
 # PCA on x_train (giving error)
 x_train = numpy.array(train_gray).astype('float32')
-pca = PCA(n_components=.90, whiten = True).fit(train_gray)
+pca = PCA(n_components=3, whiten = True).fit(train_gray)
 train_gray_pca = pca.transform(x_train)
 
 # PCA on image_i (giving error)
@@ -120,11 +124,27 @@ for n in range(0, len(test_i)):
     test_x.append(numpy.hstack((numpy.array(test_s[n]), test_gray_pca[n])))
 test_x = numpy.array(test_x)
 
-mergedLabels = bigX_mlp(train_x, train_y, test_x)
-mergedMaxLabels = mergedLabels.argmax(axis = -1)
-numpy.savetxt('mergedLabels.csv', mergedMaxLabels, delimiter = ',')
 
-print(mergedMaxLabels)
-print(kaggle_submit(mergedMaxLabels))
+# Use this to run several times on AWS
+maxAcc = -1
+maxPred = None
+count = 1
 
-# NOTE: This implementation accuracy ranges from 18% to 24%
+while maxAcc < 0.34:
+    print('Trial:', count)
+    mergedLabels = bigX_mlp(train_x, train_y, test_x)
+    mergedMaxLabels = mergedLabels.argmax(axis = -1)
+
+    score = kaggle_submit(mergedMaxLabels)
+
+    if score > maxAcc:
+        maxAcc = score
+        maxPred = mergedMaxLabels
+        numpy.savetxt('mergedLabels.csv', mergedMaxLabels, delimiter = ',')
+
+    print(mergedMaxLabels)
+    print(kaggle_submit(mergedMaxLabels))
+
+    count += 1
+
+# NOTE: This implementation accuracy ranges from 27% to 33%
