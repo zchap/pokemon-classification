@@ -401,19 +401,12 @@ def kaggle_submit(prediction):
     return correct / len(prediction)
 
 
-for i in range(len(train_i)):
-    if (i % 20 == 0):
-        for j in range(len(train_i[i])):
-            if (j % 10 == 0):
-                print(train_i[i][j])
+labels = keras_mlp(train_s, train_y, test_s)
+demaxLabels = labels.argmax(axis = -1)
+numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
 
-
-# labels = keras_mlp(train_s, train_y, test_s)
-# demaxLabels = labels.argmax(axis = -1)
-# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
-#
-# print(demaxLabels)
-# print(kaggle_submit(demaxLabels))
+print(demaxLabels)
+print(kaggle_submit(demaxLabels))
 
 
 

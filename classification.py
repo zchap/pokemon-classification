@@ -152,9 +152,9 @@ def load_training_stats(csv_file_path):
 
     for i in range(0, len(truncated_stats_list)):
         temp_list = truncated_stats_list[i]
-        temp_list.pop(1)
-        truncated_stats_list[i] = (temp_list)  # this removes type from every inner list
-        #truncated_stats_list[i] = (truncated_stats_list[i])[2:]  # this removes number and type from every inner list
+        # temp_list.pop(1)
+        # truncated_stats_list[i] = (temp_list)  # this removes type from every inner list
+        truncated_stats_list[i] = (truncated_stats_list[i])[2:]  # this removes number and type from every inner list
 
     return truncated_stats_list
 
