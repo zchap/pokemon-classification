@@ -90,19 +90,19 @@ def pca(X):
   # return the projection matrix, the variance and the mean
   return V,S,mean_X
 
-
-pca_imgs = []
-count = 0
-for img in train_i[:5]:
-    count = count + 1
-    print(count)
-    img = img.reshape(-1, 3)
-    pca_imgs.append(pca(img))
-
-print(pca_imgs[0])
-print(pca_imgs[1])
-print(pca_imgs[2])
-print(len(pca_imgs))
+#
+# pca_imgs = []
+# count = 0
+# for img in train_i[:5]:
+#     count = count + 1
+#     print(count)
+#     img = img.reshape(-1, 3)
+#     pca_imgs.append(pca(img))
+#
+# print(pca_imgs[0])
+# print(pca_imgs[1])
+# print(pca_imgs[2])
+# print(len(pca_imgs))
 
 
 def k_nn(k):
@@ -399,6 +399,13 @@ def kaggle_submit(prediction):
             correct += 1
 
     return correct / len(prediction)
+
+
+for i in range(len(train_i)):
+    if (i % 20 == 0):
+        for j in range(len(train_i[i])):
+            if (j % 10 == 0):
+                print(train_i[i][j])
 
 
 # labels = keras_mlp(train_s, train_y, test_s)
