@@ -42,7 +42,7 @@ def pca_load_images(folder_name, comp):
         newim[:,:,0] = np.array(pca_red)
         newim[:,:,1] = np.array(pca_blue)
         newim[:,:,2] = np.array(pca_green)
-        newim.flatten()
+        newim = newim.flatten()
         image_list.append(newim)
     return image_list
 
