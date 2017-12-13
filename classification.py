@@ -28,7 +28,7 @@ def pca_func(X,comp):
 def pca_load_images(folder_name, comp):
     image_list = []
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
-        im = imread(filename)[:, :, :3]
+        im = imread(filename, mode='RGB')
         newim = np.empty([96, comp, 3])
         red = im[:,:,0]
         green = im[:,:,1]
@@ -42,7 +42,6 @@ def pca_load_images(folder_name, comp):
         newim[:,:,0] = np.array(pca_red)
         newim[:,:,1] = np.array(pca_blue)
         newim[:,:,2] = np.array(pca_green)
-        newim = newim.flatten()
         image_list.append(newim)
     return image_list
 
@@ -58,15 +57,16 @@ def load_poke_images(folder_name):
 
 
 
-def load_poke_images_grayscale(folder_name):
+def load_poke_images_grayscale(folder_name,comp):
     image_list = []
 
     for filename in glob.glob('PokemonData/' + folder_name + '/*.png'):
-        im = imread(filename)[:, :, :3]
-        gray = rgb2gray(im)
-        gray = gray.flatten()
-        image_list.append(gray)
+        im = imread(filename, flatten=True)
+        newim = pca_func(im, comp)
+        newim = newim.flatten()
+        image_list.append(newim)
     return image_list
+
 
 
 

@@ -1,16 +1,11 @@
 import csv
-
 import keras
 import numpy
 from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
-from keras.models import Sequential
-from keras.optimizers import SGD
-from keras.callbacks import LearningRateScheduler, ModelCheckpoint
+from keras.preprocessing.image import ImageDataGenerator
 import classification
-from keras.datasets import mnist
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
-from keras.layers.normalization import BatchNormalization
 
 
 def getlabels(csv_file_path):
@@ -22,63 +17,68 @@ def getlabels(csv_file_path):
     trainingLabels = labels
     return trainingLabels
 
-
 train_i = numpy.array(classification.load_poke_images('TrainingImages'), dtype='float32')
 train_y = numpy.array(list(map(int, classification.load_training_labels('PokemonData/TrainingMetadata.csv'))))
 test_i = numpy.array(classification.load_poke_images('TestImages'), dtype='float32')
-print(train_i.shape)
-print(train_y.shape)
-num_cats = 19;
-cat_y = keras.utils.to_categorical(numpy.transpose(train_y), num_cats)
-# cat_y = numpy.delete(cat_y, 0, 1)
-numpy.savetxt('labels.csv', cat_y, delimiter=',')
-
+train_i /= 255
+test_i /= 255
+num_cats = 18;
+attempt_y = numpy.empty((601))
+for i in range(0, train_y.size):
+    attempt_y[i] = train_y[i] - 1
+print(attempt_y)
+cat_y = keras.utils.to_categorical(attempt_y, num_cats)
 
 batch_size = 32
-epochs = 2
+epochs = 75
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',
-                     input_shape=(96, 96, 3),
-                     activation='relu'))
-    model.add(Conv2D(32, (3, 3), activation='relu'))
-    model.add(BatchNormalization())
+    model.add(Conv2D(32, (3, 3), padding='same',input_shape=(96,96,3)))
+    model.add(Activation('relu'))
+    model.add(Conv2D(32, (3, 3)))
+    model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(64, (3, 3), padding='same',
-                     activation='relu'))
-    model.add(Conv2D(64, (3, 3), activation='relu'))
-    model.add(BatchNormalization())
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(128, (3, 3), padding='same',
-                     activation='relu'))
-    model.add(Conv2D(128, (3, 3), activation='relu'))
-    model.add(BatchNormalization())
+    model.add(Conv2D(64, (3, 3), padding='same'))
+    model.add(Activation('relu'))
+    model.add(Conv2D(64, (3, 3)))
+    model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
     model.add(Flatten())
-    model.add(Dense(256, activation='relu'))
+    model.add(Dense(512))
+    model.add(Activation('relu'))
     model.add(Dropout(0.5))
-    model.add(Dense(num_cats, activation='softmax'))
-    lr = 0.001
-    sgd = SGD(lr=lr, decay=1e-6, momentum=0.9, nesterov=True)
-    model.compile(loss='sparse_categorical_crossentropy',
-                  optimizer='adam',
+    model.add(Dense(num_cats))
+    model.add(Activation('softmax'))
+    opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    model.compile(loss='categorical_crossentropy',
+                  optimizer=opt,
                   metrics=['accuracy'])
-    model.fit(train_i, train_y,
-              batch_size=batch_size,
-              epochs=epochs,
-              verbose=1
-              )
+    datagen = ImageDataGenerator(
+        featurewise_center=False,  # set input mean to 0 over the dataset
+        samplewise_center=False,  # set each sample mean to 0
+        featurewise_std_normalization=False,  # divide inputs by std of the dataset
+        samplewise_std_normalization=False,  # divide each input by its std
+        zca_whitening=False,  # apply ZCA whitening
+        rotation_range=0,  # randomly rotate images in the range (degrees, 0 to 180)
+        width_shift_range=0.1,  # randomly shift images horizontally (fraction of total width)
+        height_shift_range=0.1,  # randomly shift images vertically (fraction of total height)
+        horizontal_flip=True,  # randomly flip images
+        vertical_flip=False)  # randomly flip images
+
+    datagen.fit(train_i)
+    model.fit_generator(datagen.flow(train_i, cat_y, batch_size=batch_size) ,epochs=epochs)
+
     y_pred = model.predict(test_i)
     return y_pred
 
 
-# labels = cnn_model()
-# demaxlabels = labels.argmax(axis=-1)
-# numpy.savetxt('testlabels.csv', demaxlabels, delimiter=",")
-
+labels = cnn_model()
+demaxlabels = labels.argmax(axis=-1)
+predictions = demaxlabels + 1
+numpy.savetxt('cnnlabels.csv', predictions, delimiter=",")
+for predict in predictions:
+    print(predict)
