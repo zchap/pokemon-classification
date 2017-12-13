@@ -1,7 +1,8 @@
 import csv
 import keras
 import numpy
-from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout
+from keras.layers import Dense, Activation, Conv2D, MaxPooling2D, Flatten, Dropout, BatchNormalization
+from keras.optimizers import SGD
 from keras.preprocessing.image import ImageDataGenerator
 import classification
 from keras.models import Sequential
@@ -30,35 +31,35 @@ print(attempt_y)
 cat_y = keras.utils.to_categorical(attempt_y, num_cats)
 
 batch_size = 32
-epochs = 75
+epochs = 20
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(32, (3, 3), padding='same',input_shape=(96,96,3)))
+    model.add(Conv2D(16, (3, 3), padding='same', input_shape=(96, 96, 3)))
+    model.add(Activation('relu'))
+    model.add(Conv2D(16, (3, 3)))
+    model.add(Activation('relu'))
+    model.add(MaxPooling2D(pool_size=(2, 2)))
+    model.add(Dropout(0.25))
+
+    model.add(Conv2D(32, (3, 3), padding='same'))
     model.add(Activation('relu'))
     model.add(Conv2D(32, (3, 3)))
     model.add(Activation('relu'))
     model.add(MaxPooling2D(pool_size=(2, 2)))
     model.add(Dropout(0.25))
 
-    model.add(Conv2D(64, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Conv2D(64, (3, 3)))
-    model.add(Activation('relu'))
-    model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
     model.add(Flatten())
-    model.add(Dense(512))
+    model.add(Dense(128))
     model.add(Activation('relu'))
     model.add(Dropout(0.5))
     model.add(Dense(num_cats))
     model.add(Activation('softmax'))
-    opt = keras.optimizers.rmsprop(lr=0.0001, decay=1e-6)
+    opt = SGD(lr = 0.01, decay=1e-6, momentum=0.9, nesterov=True)
     model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
     datagen = ImageDataGenerator(
-        featurewise_center=False,  # set input mean to 0 over the dataset
+        featurewise_center=True,  # set input mean to 0 over the dataset
         samplewise_center=False,  # set each sample mean to 0
         featurewise_std_normalization=False,  # divide inputs by std of the dataset
         samplewise_std_normalization=False,  # divide each input by its std
