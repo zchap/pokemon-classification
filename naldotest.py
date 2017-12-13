@@ -34,27 +34,19 @@ batch_size = 32
 epochs = 20
 def cnn_model():
     model = Sequential()
-    model.add(Conv2D(16, (3, 3), padding='same', input_shape=(96, 96, 3)))
-    model.add(Activation('relu'))
-    model.add(Conv2D(16, (3, 3)))
-    model.add(Activation('relu'))
+    model.add(Conv2D(32, (5, 5), padding='same', input_shape=(96, 96, 3)))
+    model.add(Conv2D(32, (5, 5), border_mode='same'))
+    model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
-    model.add(Conv2D(32, (3, 3), padding='same'))
-    model.add(Activation('relu'))
-    model.add(Conv2D(32, (3, 3)))
-    model.add(Activation('relu'))
+    model.add(Conv2D(64, (5, 5), padding="same"))
+    model.add(Activation("relu"))
     model.add(MaxPooling2D(pool_size=(2, 2)))
-    model.add(Dropout(0.25))
-
     model.add(Flatten())
-    model.add(Dense(128))
-    model.add(Activation('relu'))
-    model.add(Dropout(0.5))
+    model.add(Dense(64))
+    model.add(Activation("relu"))
     model.add(Dense(num_cats))
     model.add(Activation('softmax'))
-    opt = SGD(lr = 0.01, decay=1e-6, momentum=0.9, nesterov=True)
+    opt = SGD(lr = 0.001, decay=1e-6, momentum=1.1, nesterov=True)
     model.compile(loss='categorical_crossentropy',
                   optimizer=opt,
                   metrics=['accuracy'])
