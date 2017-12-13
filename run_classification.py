@@ -90,19 +90,19 @@ def pca(X):
   # return the projection matrix, the variance and the mean
   return V,S,mean_X
 
-
-pca_imgs = []
-count = 0
-for img in train_i[:5]:
-    count = count + 1
-    print(count)
-    img = img.reshape(-1, 3)
-    pca_imgs.append(pca(img))
-
-print(pca_imgs[0])
-print(pca_imgs[1])
-print(pca_imgs[2])
-print(len(pca_imgs))
+#
+# pca_imgs = []
+# count = 0
+# for img in train_i[:5]:
+#     count = count + 1
+#     print(count)
+#     img = img.reshape(-1, 3)
+#     pca_imgs.append(pca(img))
+#
+# print(pca_imgs[0])
+# print(pca_imgs[1])
+# print(pca_imgs[2])
+# print(len(pca_imgs))
 
 
 def k_nn(k):
@@ -401,12 +401,12 @@ def kaggle_submit(prediction):
     return correct / len(prediction)
 
 
-# labels = keras_mlp(train_s, train_y, test_s)
-# demaxLabels = labels.argmax(axis = -1)
-# numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
-#
-# print(demaxLabels)
-# print(kaggle_submit(demaxLabels))
+labels = keras_mlp(train_s, train_y, test_s)
+demaxLabels = labels.argmax(axis = -1)
+numpy.savetxt('mlpLabels.csv', demaxLabels, delimiter = ',')
+
+print(demaxLabels)
+print(kaggle_submit(demaxLabels))
 
 
 
